@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: |cff1eff00SexyHarvester|r
+## Notes: Zeigt Sammelberuf-Rohstoffe (Kräuter, Erz, Leder) im Inventar samt Session-Zähler an.
+## Author: apnotix2007
+## Version: 1.0.0
+## SavedVariables: SexyHarvesterDB
+
+Libs\LibStub.lua
+Libs\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
+
+SexyHarvester.lua
