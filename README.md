@@ -39,8 +39,13 @@ aktuellen Session dazugesammelt hast.
 - **Größe** – Skalierungs-Regler (50 %–200 %).
 - **Titel ausblenden** – Checkbox, blendet das Label „Sammelberufe“ oben aus
   (standardmäßig sichtbar).
-- **Menge ausblenden** – Checkbox, blendet die Stückzahl unten rechts am
-  Icon aus (standardmäßig sichtbar); das grüne `+N` bleibt davon unberührt.
+- **Menge ausblenden** – Checkbox, blendet die Stückzahl am Icon aus
+  (standardmäßig sichtbar).
+- **Session-Zähler ausblenden** – Checkbox, blendet das grüne `+N` aus
+  (standardmäßig sichtbar).
+- **Anzahl-Position wechseln** – Button, schaltet die Position der Stückzahl
+  am Icon durch: unten rechts → oben rechts → unten links → oben links →
+  außerhalb rechts vom Icon (dann rückt der Session-Zähler entsprechend mit).
 
 ## Kompatibilität
 

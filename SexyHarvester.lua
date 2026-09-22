@@ -104,6 +104,7 @@ local initialized = false
 -- Über den Edit Mode umschaltbare Anzeige-Optionen (siehe RegisterCustomCheckbox weiter unten)
 local hideTitle = false
 local hideCount = false
+local hideGained = false
 
 ------------------------------------------------------------------------------
 -- UI
@@ -134,7 +135,35 @@ title:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -6)
 title:SetText("Sammelberufe")
 title:SetTextColor(0.9, 0.9, 0.9)
 
+-- Positionen der Mengenanzahl relativ zum Icon, per Edit-Mode-Button durchschaltbar.
+local COUNT_POSITIONS = {
+    { label = "Icon: unten rechts",         anchor = "BOTTOMRIGHT", relPoint = "BOTTOMRIGHT", x = 1,  y = -1, outside = false, justify = "RIGHT" },
+    { label = "Icon: oben rechts",          anchor = "TOPRIGHT",    relPoint = "TOPRIGHT",    x = 1,  y = 1,  outside = false, justify = "RIGHT" },
+    { label = "Icon: unten links",          anchor = "BOTTOMLEFT",  relPoint = "BOTTOMLEFT",  x = -1, y = -1, outside = false, justify = "LEFT" },
+    { label = "Icon: oben links",           anchor = "TOPLEFT",     relPoint = "TOPLEFT",     x = -1, y = 1,  outside = false, justify = "LEFT" },
+    { label = "Außerhalb, rechts vom Icon", anchor = "LEFT",        relPoint = "RIGHT",       x = 4,  y = 0,  outside = true,  justify = "LEFT" },
+}
+local countPositionIndex = 1
+
 local rowPool = {}
+
+-- Positioniert die Mengenanzahl (und ggf. den Session-Zähler daneben) neu,
+-- entsprechend der aktuell gewählten COUNT_POSITIONS-Einstellung.
+local function ApplyCountPosition(row)
+    local pos = COUNT_POSITIONS[countPositionIndex] or COUNT_POSITIONS[1]
+    row.count:ClearAllPoints()
+    row.count:SetPoint(pos.anchor, row.icon, pos.relPoint, pos.x, pos.y)
+    row.count:SetJustifyH(pos.justify)
+
+    row.gained:ClearAllPoints()
+    if pos.outside then
+        -- Zählt sonst mit der Mengenanzahl zusammen: den Session-Zähler
+        -- stattdessen rechts neben die Menge selbst hängen.
+        row.gained:SetPoint("LEFT", row.count, "RIGHT", 6, 0)
+    else
+        row.gained:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
+    end
+end
 
 local function CreateRow(index)
     local row = CreateFrame("Frame", nil, frame)
@@ -154,15 +183,13 @@ local function CreateRow(index)
     iconBorder:SetDrawLayer("ARTWORK", -1)
 
     local count = row:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
-    count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 1, -1)
-    count:SetJustifyH("RIGHT")
     row.count = count
 
     local gained = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    gained:SetPoint("LEFT", icon, "RIGHT", 6, 0)
     gained:SetTextColor(0.2, 1.0, 0.2)
-    gained:SetJustifyH("LEFT")
     row.gained = gained
+
+    ApplyCountPosition(row)
 
     row:EnableMouse(true)
     row:SetScript("OnEnter", function(self)
@@ -211,7 +238,7 @@ local function RenderRows()
         row.count:SetShown(not hideCount)
 
         local gained = sessionGained[entry.itemID]
-        if gained and gained > 0 then
+        if (not hideGained) and gained and gained > 0 then
             row.gained:SetText("+" .. gained)
             row.gained:Show()
         else
@@ -332,6 +359,24 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 function() hideCount = true; RenderRows() end,
                 function() hideCount = false; RenderRows() end,
                 "hideCount")
+            lib:RegisterCustomCheckbox(frame, "Session-Zähler ausblenden",
+                function() hideGained = true; RenderRows() end,
+                function() hideGained = false; RenderRows() end,
+                "hideGained")
+
+            -- Position der Mengenanzahl am Icon durchschalten (siehe COUNT_POSITIONS).
+            local getCountPositionDB = lib:RegisterCustomButton(frame, "Anzahl-Position wechseln", function()
+                countPositionIndex = (countPositionIndex % #COUNT_POSITIONS) + 1
+                getCountPositionDB().index = countPositionIndex
+                for _, row in ipairs(rowPool) do
+                    ApplyCountPosition(row)
+                end
+                print("|cff1eff00SexyHarvester|r: Anzahl-Position = " .. COUNT_POSITIONS[countPositionIndex].label)
+            end, "countPosition")
+            countPositionIndex = getCountPositionDB().index or 1
+            for _, row in ipairs(rowPool) do
+                ApplyCountPosition(row)
+            end
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         RequestScan()
