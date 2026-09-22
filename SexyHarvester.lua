@@ -101,6 +101,10 @@ local sessionGained = {}   -- [itemID] = in dieser Session dazugewonnene Menge
 local pendingItemIDs = {}  -- itemIDs, deren Info noch nicht gecacht war
 local initialized = false
 
+-- Über den Edit Mode umschaltbare Anzeige-Optionen (siehe RegisterCustomCheckbox weiter unten)
+local hideTitle = false
+local hideCount = false
+
 ------------------------------------------------------------------------------
 -- UI
 ------------------------------------------------------------------------------
@@ -186,6 +190,9 @@ end
 ------------------------------------------------------------------------------
 
 local function RenderRows()
+    title:SetShown(not hideTitle)
+    local topOffset = hideTitle and FRAME_PADDING or (HEADER_HEIGHT + FRAME_PADDING)
+
     -- Sortierte Liste der aktuell gehaltenen Sammelrohstoffe aufbauen.
     local entries = {}
     for itemID, count in pairs(currentCounts) do
@@ -201,6 +208,7 @@ local function RenderRows()
         row.itemID = entry.itemID
         row.icon:SetTexture(GetItemIcon(entry.itemID))
         row.count:SetText(entry.count)
+        row.count:SetShown(not hideCount)
 
         local gained = sessionGained[entry.itemID]
         if gained and gained > 0 then
@@ -212,7 +220,7 @@ local function RenderRows()
         end
 
         row:ClearAllPoints()
-        row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -(HEADER_HEIGHT + FRAME_PADDING) - (i - 1) * ROW_HEIGHT)
+        row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -topOffset - (i - 1) * ROW_HEIGHT)
         row:Show()
     end
 
@@ -223,7 +231,7 @@ local function RenderRows()
     if #entries == 0 then
         frame:Hide()
     else
-        frame:SetHeight(HEADER_HEIGHT + FRAME_PADDING * 2 + #entries * ROW_HEIGHT)
+        frame:SetHeight(topOffset + FRAME_PADDING + #entries * ROW_HEIGHT)
         frame:Show()
     end
 end
@@ -310,6 +318,20 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- Position/Klemmen wird von der Library verwaltet und in
             -- SexyHarvesterDB.editMode persistiert.
             lib:RegisterFrame(frame, "Sammelberufe", SexyHarvesterDB.editMode, UIParent, "CENTER", true)
+
+            -- Größe: Skalierungs-Regler (50%-200%) im Edit-Mode-Einstellungsdialog
+            lib:RegisterResizable(frame, 50, 200, 10)
+
+            -- Zusätzliche Checkboxen im selben Dialog: Titel und Mengenanzeige
+            -- lassen sich einzeln ausblenden, sind aber standardmäßig an.
+            lib:RegisterCustomCheckbox(frame, "Titel ausblenden",
+                function() hideTitle = true; RenderRows() end,
+                function() hideTitle = false; RenderRows() end,
+                "hideTitle")
+            lib:RegisterCustomCheckbox(frame, "Menge ausblenden",
+                function() hideCount = true; RenderRows() end,
+                function() hideCount = false; RenderRows() end,
+                "hideCount")
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         RequestScan()

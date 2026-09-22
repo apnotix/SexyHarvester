@@ -27,8 +27,20 @@ aktuellen Session dazugesammelt hast.
 
 - Fenster erscheint automatisch, sobald du Sammelberuf-Rohstoffe im
   Inventar hast.
-- Verschieben: `Esc` → Edit-Modus → **„Sammelberufe“** anwählen und ziehen.
 - `/sh reset` – Session-Zähler (`+N`) zurücksetzen.
+
+### Einstellungen über den Edit-Mode
+
+`Esc` → Edit-Modus → **„Sammelberufe“** anwählen. Dort einstellbar:
+
+- **Position** – Fenster direkt per Drag&Drop verschieben.
+- **Am Bildschirmrand einklemmen** – Checkbox, verhindert, dass das Fenster
+  über den Bildschirmrand hinausgezogen wird.
+- **Größe** – Skalierungs-Regler (50 %–200 %).
+- **Titel ausblenden** – Checkbox, blendet das Label „Sammelberufe“ oben aus
+  (standardmäßig sichtbar).
+- **Menge ausblenden** – Checkbox, blendet die Stückzahl unten rechts am
+  Icon aus (standardmäßig sichtbar); das grüne `+N` bleibt davon unberührt.
 
 ## Kompatibilität
 
