@@ -136,18 +136,31 @@ title:SetText("Sammelberufe")
 title:SetTextColor(0.9, 0.9, 0.9)
 
 -- Positionen der Mengenanzahl relativ zum Icon, per Edit-Mode-Button durchschaltbar.
+-- "outside = true" heißt: die Zahl sitzt außerhalb des Icons (nicht als Overlay darauf).
 local COUNT_POSITIONS = {
-    { label = "Icon: unten rechts",         anchor = "BOTTOMRIGHT", relPoint = "BOTTOMRIGHT", x = 1,  y = -1, outside = false, justify = "RIGHT" },
-    { label = "Icon: oben rechts",          anchor = "TOPRIGHT",    relPoint = "TOPRIGHT",    x = 1,  y = 1,  outside = false, justify = "RIGHT" },
-    { label = "Icon: unten links",          anchor = "BOTTOMLEFT",  relPoint = "BOTTOMLEFT",  x = -1, y = -1, outside = false, justify = "LEFT" },
-    { label = "Icon: oben links",           anchor = "TOPLEFT",     relPoint = "TOPLEFT",     x = -1, y = 1,  outside = false, justify = "LEFT" },
-    { label = "Außerhalb, rechts vom Icon", anchor = "LEFT",        relPoint = "RIGHT",       x = 4,  y = 0,  outside = true,  justify = "LEFT" },
+    { label = "Icon: unten rechts",   anchor = "BOTTOMRIGHT", relPoint = "BOTTOMRIGHT", x = 1,  y = -1, outside = false, justify = "RIGHT" },
+    { label = "Icon: oben rechts",    anchor = "TOPRIGHT",    relPoint = "TOPRIGHT",    x = 1,  y = 1,  outside = false, justify = "RIGHT" },
+    { label = "Icon: unten links",    anchor = "BOTTOMLEFT",  relPoint = "BOTTOMLEFT",  x = -1, y = -1, outside = false, justify = "LEFT" },
+    { label = "Icon: oben links",     anchor = "TOPLEFT",     relPoint = "TOPLEFT",     x = -1, y = 1,  outside = false, justify = "LEFT" },
+    { label = "Außerhalb rechts",     anchor = "LEFT",        relPoint = "RIGHT",       x = 4,  y = 0,  outside = true,  justify = "LEFT" },
+    { label = "Außerhalb links",      anchor = "RIGHT",       relPoint = "LEFT",        x = -4, y = 0,  outside = true,  justify = "RIGHT" },
+    { label = "Außerhalb oben",       anchor = "BOTTOM",      relPoint = "TOP",         x = 0,  y = 4,  outside = true,  justify = "CENTER" },
+    { label = "Außerhalb unten",      anchor = "TOP",         relPoint = "BOTTOM",      x = 0,  y = -4, outside = true,  justify = "CENTER" },
 }
 local countPositionIndex = 1
 
+-- Gesamt-Layout der Icon-Liste: Icons untereinander (klassisch) oder
+-- nebeneinander in einer horizontalen Reihe.
+local LIST_LAYOUTS = {
+    { id = "vertical",   label = "Vertikal (untereinander)" },
+    { id = "horizontal", label = "Horizontal (nebeneinander)" },
+}
+local listLayoutIndex = 1
+local ITEM_SLOT_WIDTH = 64 -- horizontaler Abstand zwischen Icons im Horizontal-Layout
+
 local rowPool = {}
 
--- Positioniert die Mengenanzahl (und ggf. den Session-Zähler daneben) neu,
+-- Positioniert die Mengenanzahl und den Session-Zähler relativ zum Icon neu,
 -- entsprechend der aktuell gewählten COUNT_POSITIONS-Einstellung.
 local function ApplyCountPosition(row)
     local pos = COUNT_POSITIONS[countPositionIndex] or COUNT_POSITIONS[1]
@@ -155,14 +168,11 @@ local function ApplyCountPosition(row)
     row.count:SetPoint(pos.anchor, row.icon, pos.relPoint, pos.x, pos.y)
     row.count:SetJustifyH(pos.justify)
 
+    -- Außerhalb des Icons hängt der Session-Zähler an der Mengenanzahl,
+    -- als Overlay auf dem Icon hängt er stattdessen direkt am Icon.
+    local anchorFrame = pos.outside and row.count or row.icon
     row.gained:ClearAllPoints()
-    if pos.outside then
-        -- Zählt sonst mit der Mengenanzahl zusammen: den Session-Zähler
-        -- stattdessen rechts neben die Menge selbst hängen.
-        row.gained:SetPoint("LEFT", row.count, "RIGHT", 6, 0)
-    else
-        row.gained:SetPoint("LEFT", row.icon, "RIGHT", 6, 0)
-    end
+    row.gained:SetPoint("LEFT", anchorFrame, "RIGHT", 6, 0)
 end
 
 local function CreateRow(index)
@@ -219,6 +229,8 @@ end
 local function RenderRows()
     title:SetShown(not hideTitle)
     local topOffset = hideTitle and FRAME_PADDING or (HEADER_HEIGHT + FRAME_PADDING)
+    local layout = LIST_LAYOUTS[listLayoutIndex] or LIST_LAYOUTS[1]
+    local horizontal = layout.id == "horizontal"
 
     -- Sortierte Liste der aktuell gehaltenen Sammelrohstoffe aufbauen.
     local entries = {}
@@ -247,7 +259,15 @@ local function RenderRows()
         end
 
         row:ClearAllPoints()
-        row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -topOffset - (i - 1) * ROW_HEIGHT)
+        if horizontal then
+            -- Icons nebeneinander in schmalen, festen Spalten, damit sich die
+            -- Mauszeiger-Trefferflächen benachbarter Icons nicht überlappen.
+            row:SetWidth(ITEM_SLOT_WIDTH)
+            row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING + (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
+        else
+            row:SetWidth(FRAME_WIDTH - FRAME_PADDING * 2)
+            row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -topOffset - (i - 1) * ROW_HEIGHT)
+        end
         row:Show()
     end
 
@@ -257,8 +277,11 @@ local function RenderRows()
 
     if #entries == 0 then
         frame:Hide()
+    elseif horizontal then
+        frame:SetSize(FRAME_PADDING * 2 + #entries * ITEM_SLOT_WIDTH, topOffset + FRAME_PADDING + ROW_HEIGHT)
+        frame:Show()
     else
-        frame:SetHeight(topOffset + FRAME_PADDING + #entries * ROW_HEIGHT)
+        frame:SetSize(FRAME_WIDTH, topOffset + FRAME_PADDING + #entries * ROW_HEIGHT)
         frame:Show()
     end
 end
@@ -377,6 +400,15 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             for _, row in ipairs(rowPool) do
                 ApplyCountPosition(row)
             end
+
+            -- Icon-Liste horizontal <-> vertikal durchschalten (siehe LIST_LAYOUTS).
+            local getListLayoutDB = lib:RegisterCustomButton(frame, "Icon-Layout wechseln", function()
+                listLayoutIndex = (listLayoutIndex % #LIST_LAYOUTS) + 1
+                getListLayoutDB().index = listLayoutIndex
+                RenderRows()
+                print("|cff1eff00SexyHarvester|r: Icon-Layout = " .. LIST_LAYOUTS[listLayoutIndex].label)
+            end, "listLayout")
+            listLayoutIndex = getListLayoutDB().index or 1
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         RequestScan()

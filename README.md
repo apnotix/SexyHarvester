@@ -45,7 +45,11 @@ aktuellen Session dazugesammelt hast.
   (standardmäßig sichtbar).
 - **Anzahl-Position wechseln** – Button, schaltet die Position der Stückzahl
   am Icon durch: unten rechts → oben rechts → unten links → oben links →
-  außerhalb rechts vom Icon (dann rückt der Session-Zähler entsprechend mit).
+  außerhalb rechts → außerhalb links → außerhalb oben → außerhalb unten.
+  Bei den „außerhalb“-Positionen rückt der Session-Zähler entsprechend mit,
+  bei Overlay-Positionen hängt er direkt am Icon.
+- **Icon-Layout wechseln** – Button, schaltet zwischen Icons untereinander
+  (Standard) und Icons nebeneinander in einer horizontalen Reihe um.
 
 ## Kompatibilität
 
