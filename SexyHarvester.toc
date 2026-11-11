@@ -3,7 +3,7 @@
 ## Notes: Zeigt Sammelberuf-Rohstoffe (Kräuter, Erz, Leder, Stoff) im Inventar samt Session-Zähler an.
 ## Notes-enUS: Shows gathering materials (herbs, ore, leather, cloth) in your bags with a session counter.
 ## Author: apnotix2007
-## Version: 1.0.1
+## Version: 1.0.2
 ## X-Curse-Project-ID: 1799184
 ## Category: Professions
 ## IconTexture: Interface\AddOns\SexyHarvester\icon.tga
