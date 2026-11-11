@@ -1,92 +1,109 @@
-# SexyHarvester
+<div align="center">
 
-Ein Addon für **World of Warcraft: Forever**, das für jeden Sammelberuf-Rohstoff
-(Kräuter, Erz, Leder) in deinem Inventar ein Icon mit der aktuellen Stückzahl
-anzeigt – daneben ein grünes `+N`, das zeigt, wie viel du davon in der
-aktuellen Session dazugesammelt hast.
+# 🌿 SexyHarvester
 
-## Features
+**Alles, was du sammelst, auf einen Blick.**
+Kräuter, Erz, Leder und Stoff aus deinen Taschen mit Stückzahl und einem grünen `+N` für die Beute dieser Sitzung. Drei Ansichten, frei einstellbar im Edit Mode.
 
-- Automatische Erkennung von Kräuterkunde-, Bergbau- und Kürschnerei-Rohstoffen
-  über den Item-Subtyp (keine feste Item-Liste, funktioniert also auch mit
-  neuen Rohstoffen)
-- Icon + aktuelle Menge pro Rohstoff
-- Grüner `+N`-Zähler für die in dieser Login-Session gesammelte Menge
-- Tooltip mit Item-Namen beim Hovern
-- Verschiebbar über Blizzards eigenen Edit-Modus (`Esc` → Edit-Modus)
+![WoW Forever](https://img.shields.io/badge/WoW-Forever-e8c26a?style=for-the-badge)
+![Interface](https://img.shields.io/badge/Interface-16001-3b2b12?style=for-the-badge)
+![Edit Mode](https://img.shields.io/badge/Edit%20Mode-ja-4fc16a?style=for-the-badge)
 
-## Look und Ansichten
+[🇬🇧 English version](README.en.md)
 
-Das Fenster hat den Look von SexyQuestHelper und SexyLoot: dunkelbraune Fläche,
-Goldrand, Titelband mit Badge (gesamte Session-Ausbeute), Karten mit Trennlinien
-und das `+N` als grünes Etikett. Schrift: Marcellus für den Titel, Inter für den
-übrigen Text (mitgeliefert, SIL Open Font License, Lizenzen in `media/fonts`).
+</div>
 
-Die Option **Icon-Layout** (Edit-Modus) schaltet zwischen drei Ansichten um:
+---
 
-- **Kompakt (untereinander)** – Icon, Anzahl und Session-Etikett (Standard).
-- **Als Reihe (nebeneinander)** – je Rohstoff ein Fach mit Icon, Anzahl darunter
-  und Session-Etikett.
-- **Mit Namen und Berufsgruppen** – Gruppenzeilen für Kräuter, Erz, Leder und
-  Stoff mit Summe, darunter Icon, Name, Anzahl und Session-Etikett, dazu ein Knopf
-  „Session zurücksetzen“ (wie `/sh reset`).
+## ✨ Das kann SexyHarvester
 
-Die **Anzahl-Position** gilt nur in der Ansicht „Kompakt“. Wer schon einen eigenen
-Stil für Hintergrund, Rahmen oder Schrift gespeichert hat, behält ihn; die neuen
-Quest-Look-Einträge stehen jeweils am Ende der Auswahllisten.
+### 🧺 Rohstoffe im Blick
+Das Fenster erscheint von selbst, sobald du Sammelberuf-Rohstoffe in den Taschen hast.
 
-## Installation
+- 🔎 **Erkennt Rohstoffe selbst:** Kräuterkunde, Bergbau, Kürschnerei und Stoff über den Item-Subtyp, ohne feste Item-Liste. Neue Rohstoffe funktionieren sofort. Anlegbare Gegenstände wie Lederrüstung werden ignoriert.
+- 🔢 **Stückzahl** pro Rohstoff, aus allen Taschen samt Reagenztasche.
+- ➕ **Session-Zähler:** Ein grünes `+N` zeigt, wie viel du seit dem Login dazugesammelt hast. Im Titelband steht die gesamte Ausbeute als Badge.
+- 🖱️ **Tooltip:** Fahr über ein Icon und sieh den normalen Item-Tooltip.
+- 🔄 **Zurücksetzen** mit `/sh reset` oder dem Knopf im Fenster.
 
-1. Repo als ZIP herunterladen oder klonen.
-2. Den Ordner `SexyHarvester` (mit `SexyHarvester.toc` direkt darin) nach
-   `World of Warcraft\_forever_\Interface\AddOns\` kopieren.
-   *(Ordnername ggf. an den tatsächlichen Client-Pfad anpassen.)*
-3. Client starten, Addon in der Charakterauswahl aktivieren.
+### 🪟 Drei Ansichten
+Die Option **Icon-Layout** schaltet um:
 
-## Nutzung
+- 🗂️ **Kompakt (untereinander):** Icon, Anzahl und Session-Etikett, Standard.
+- ↔️ **Als Reihe (nebeneinander):** je Rohstoff ein Fach mit Icon, Anzahl darunter und Session-Etikett.
+- 📚 **Mit Namen und Berufsgruppen:** Gruppenzeilen für Kräuter, Erz, Leder und Stoff mit Summe, darunter Icon, Name, Anzahl und Session-Etikett, dazu der Knopf „Session zurücksetzen“.
 
-- Fenster erscheint automatisch, sobald du Sammelberuf-Rohstoffe im
-  Inventar hast.
-- `/sh reset` – Session-Zähler (`+N`) zurücksetzen.
+### 🎨 Look
+Dunkelbraune Fläche, Goldrand, Titelband mit Badge, Karten mit Trennlinien und das `+N` als grünes Etikett, passend zu **SexyLoot** und **SexyQuestHelper**. Schrift: **Marcellus** für den Titel, **Inter** für den Text. Hintergrund, Rahmen und Schrift lassen sich weiter wechseln.
 
-### Einstellungen über den Edit-Mode
+---
 
-`Esc` → Edit-Modus → **„Sammelberufe“** anwählen. Dort einstellbar:
+## 🛠️ Alles im Edit Mode einstellbar
 
-- **Position** – Fenster direkt per Drag&Drop verschieben.
-- **Am Bildschirmrand einklemmen** – Checkbox, verhindert, dass das Fenster
-  über den Bildschirmrand hinausgezogen wird.
-- **Größe** – Skalierungs-Regler (50 %–200 %).
-- **Titel ausblenden** – Checkbox, blendet das Label „Sammelberufe“ oben aus
-  (standardmäßig sichtbar).
-- **Menge ausblenden** – Checkbox, blendet die Stückzahl am Icon aus
-  (standardmäßig sichtbar).
-- **Session-Zähler ausblenden** – Checkbox, blendet das grüne `+N` aus
-  (standardmäßig sichtbar).
-- **Anzahl-Position wechseln** – Button, schaltet die Position der Stückzahl
-  am Icon durch: unten rechts → oben rechts → unten links → oben links →
-  außerhalb rechts → außerhalb links → außerhalb oben → außerhalb unten.
-  Bei den „außerhalb“-Positionen rückt der Session-Zähler entsprechend mit,
-  bei Overlay-Positionen hängt er direkt am Icon.
-- **Icon-Layout wechseln** – Button, schaltet zwischen Icons untereinander
-  (Standard) und Icons nebeneinander in einer horizontalen Reihe um.
+`Esc` → **Edit Mode** → **„Sammelberufe“** anwählen. SexyHarvester nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
 
-## Kompatibilität
+| Option | Wirkung |
+| --- | --- |
+| 📍 Position | Per Drag & Drop, am Bildschirmrand klemmbar |
+| 🔍 Größe | 50 bis 200 % |
+| 🧩 Icon-Layout | Kompakt, als Reihe oder mit Namen und Berufsgruppen |
+| ⬇️ Wachstumsrichtung | Nach unten, oben, rechts oder links |
+| 🔢 Anzahl-Position | Auf dem Icon (Mitte, vier Ecken) oder außerhalb (rechts, links, oben, unten), in der Ansicht „Kompakt“ |
+| 👁️ Ausblenden | Titel, Menge oder Session-Zähler einzeln aus |
+| 🖼️ Hintergrund, Rahmen, Icon-Rahmen | Auswahllisten, Standard ist der Quest-Look |
+| 🔤 Schriftart und Größe | Marcellus + Inter oder eine Spielschrift, Größe 8 bis 24 |
 
-Der genaue Lua-API-Stand von World of Warcraft: Forever war zum Zeitpunkt der
-Entwicklung nicht zuverlässig zu verifizieren. Das Addon enthält deshalb eine
-Kompatibilitätsschicht, die sowohl klassische (`GetContainerItemInfo`,
-`GetItemInfo`, …) als auch modernere API-Varianten (`C_Container.*`,
-`C_Item.*`) unterstützt. Interface-Version in der `.toc`: `16001`.
+Wer schon einen eigenen Stil für Hintergrund, Rahmen oder Schrift gespeichert hat, behält ihn. Die neuen Quest-Look-Einträge stehen am Ende der Listen.
 
-Falls beim Laden ein Lua-Fehler auftritt, bitte als
-[Issue](https://github.com/apnotix/SexyHarvester/issues) mit der genauen
-Fehlermeldung melden.
+---
 
-## Verwendete Bibliotheken
+## 🌍 Sprachen
+Deutsch und Englisch. Deutsche Clients zeigen Deutsch, alle anderen Englisch.
 
-- [EditModeExpanded-1.0](https://github.com/teelolws/EditModeExpanded) von
-  **Teelo** – bindet das Addon-Fenster in Blizzards nativen Edit-Modus ein.
-  Eingebettet unter `Libs/EditModeExpanded-1.0/`.
-- [LibStub](https://www.wowace.com/wiki/LibStub) (Public Domain) – Versionierungs-Stub
-  für obige Library. Eingebettet unter `Libs/LibStub.lua`.
+## 🔤 Schriften
+Marcellus und Inter liegen in `media/fonts` (SIL Open Font License, Lizenztexte daneben). Auf russischen, koreanischen und chinesischen Clients nutzt SexyHarvester die Spielschrift.
+
+---
+
+## 📥 Installation
+
+1. Ordner `SexyHarvester` (mit `SexyHarvester.toc` direkt darin) in dein `Interface/AddOns`-Verzeichnis des Forever-Clients kopieren.
+2. Spiel starten oder `/reload`.
+3. Edit Mode öffnen und das Fenster nach Wunsch platzieren.
+
+## ⌨️ Befehle
+
+| Befehl | Wirkung |
+| --- | --- |
+| `/sh` | Befehlsliste |
+| `/sh reset` | Session-Zähler (`+N`) zurücksetzen |
+| `/sh debug` | Rohdaten der Taschen und Fensterzustand in den Chat ausgeben |
+
+Langform: `/sexyharvester`
+
+---
+
+## ⚠️ Gut zu wissen
+
+- 🧪 Der Lua-API-Stand von World of Warcraft: Forever war bei der Entwicklung nicht sicher zu klären. Das Addon unterstützt deshalb klassische (`GetContainerItemInfo`, `GetItemInfo`) und modernere Varianten (`C_Container.*`, `C_Item.*`).
+- 🕒 Die Beute zählt ab dem Login. Was du beim Einloggen schon dabeihast, ist der Ausgangswert und kein `+N`.
+- 🫥 Sind keine Rohstoffe in den Taschen, blendet sich das Fenster aus.
+- 🎛️ Die **Anzahl-Position** gilt nur in der Ansicht „Kompakt“.
+
+## 🐞 Fehler melden
+
+Fehler und Wünsche bitte als [Issue auf GitHub](https://github.com/apnotix/SexyHarvester/issues) melden. Aktiviere vorher `/console scriptErrors 1` und schick die Lua-Fehlermeldung mit.
+
+## 🙏 Danksagung
+
+- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) von **Teelo** (Bibliothek `EditModeExpanded-1.0`, eingebettet unter `Libs/`, Autor wird wie in der Lizenz gefordert genannt)
+- **LibStub** (gemeinfrei) und **LibUIDropDownMenu** (Fork aus Questie), eingebettet unter `Libs/`
+- Schriften [Marcellus](https://fonts.google.com/specimen/Marcellus) und [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
+
+---
+
+<div align="center">
+
+Gemacht von **apnotix** · Auch von mir: **SexyLoot**, **SexyQuestHelper**, **SexyInterrupter**
+
+</div>
