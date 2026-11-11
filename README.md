@@ -15,6 +15,26 @@ aktuellen Session dazugesammelt hast.
 - Tooltip mit Item-Namen beim Hovern
 - Verschiebbar über Blizzards eigenen Edit-Modus (`Esc` → Edit-Modus)
 
+## Look und Ansichten
+
+Das Fenster hat den Look von SexyQuestHelper und SexyLoot: dunkelbraune Fläche,
+Goldrand, Titelband mit Badge (gesamte Session-Ausbeute), Karten mit Trennlinien
+und das `+N` als grünes Etikett. Schrift: Marcellus für den Titel, Inter für den
+übrigen Text (mitgeliefert, SIL Open Font License, Lizenzen in `media/fonts`).
+
+Die Option **Icon-Layout** (Edit-Modus) schaltet zwischen drei Ansichten um:
+
+- **Kompakt (untereinander)** – Icon, Anzahl und Session-Etikett (Standard).
+- **Als Reihe (nebeneinander)** – je Rohstoff ein Fach mit Icon, Anzahl darunter
+  und Session-Etikett.
+- **Mit Namen und Berufsgruppen** – Gruppenzeilen für Kräuter, Erz, Leder und
+  Stoff mit Summe, darunter Icon, Name, Anzahl und Session-Etikett, dazu ein Knopf
+  „Session zurücksetzen“ (wie `/sh reset`).
+
+Die **Anzahl-Position** gilt nur in der Ansicht „Kompakt“. Wer schon einen eigenen
+Stil für Hintergrund, Rahmen oder Schrift gespeichert hat, behält ihn; die neuen
+Quest-Look-Einträge stehen jeweils am Ende der Auswahllisten.
+
 ## Installation
 
 1. Repo als ZIP herunterladen oder klonen.

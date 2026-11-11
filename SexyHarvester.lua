@@ -55,8 +55,21 @@ local STRINGS = {
     posOutsideTop   = { de = "Außerhalb oben",             en = "Outside Top" },
     posOutsideBottom= { de = "Außerhalb unten",            en = "Outside Bottom" },
 
-    layoutVertical  = { de = "Vertikal (untereinander)",   en = "Vertical (stacked)" },
-    layoutHorizontal= { de = "Horizontal (nebeneinander)", en = "Horizontal (side by side)" },
+    layoutVertical  = { de = "Kompakt (untereinander)",    en = "Compact (stacked)" },
+    layoutHorizontal= { de = "Als Reihe (nebeneinander)",  en = "As row (side by side)" },
+    layoutGrouped   = { de = "Mit Namen und Berufsgruppen", en = "With names and profession groups" },
+
+    bgQuest         = { de = "Quest-Look (dunkelbraun)",   en = "Quest look (dark brown)" },
+    edgeQuest       = { de = "Quest-Look (Gold)",          en = "Quest look (gold)" },
+    fontQuest       = { de = "Marcellus + Inter",          en = "Marcellus + Inter" },
+
+    groupHerb       = { de = "Kräuter",                    en = "Herbs" },
+    groupOre        = { de = "Erz",                        en = "Ore" },
+    groupLeather    = { de = "Leder",                      en = "Leather" },
+    groupCloth      = { de = "Stoff",                      en = "Cloth" },
+    groupOther      = { de = "Sonstiges",                  en = "Other" },
+    session         = { de = "Session",                    en = "Session" },
+    resetButton     = { de = "Session zurücksetzen",       en = "Reset session" },
 
     growthDown      = { de = "Nach unten",                  en = "Downward" },
     growthUp        = { de = "Nach oben",                   en = "Upward" },
@@ -137,8 +150,9 @@ end
 
 ------------------------------------------------------------------------------
 -- Erkennung von Sammelberuf-Rohstoffen anhand des lokalisierten Subtyps.
--- Deckt Kräuterkunde, Bergbau und Kürschnerei ab (Deutsch + Englisch, sowie ein
--- paar weitere Sprachen als Best-Effort-Fallback).
+-- Deckt Kräuterkunde, Bergbau, Kürschnerei und Stoff (Leinenstoff, Wollstoff,
+-- ...) ab (Deutsch + Englisch, sowie ein paar weitere Sprachen als
+-- Best-Effort-Fallback).
 ------------------------------------------------------------------------------
 
 local GATHERING_SUBTYPES = {
@@ -149,6 +163,35 @@ local GATHERING_SUBTYPES = {
     ["metal y piedra"] = true, ["metallo e pietra"] = true,
     -- Kürschnerei
     ["leather"] = true, ["leder"] = true, ["cuir"] = true, ["cuero"] = true, ["pelle"] = true,
+    -- Stoff (Leinenstoff, Wollstoff, ...)
+    ["cloth"] = true, ["stoff"] = true, ["tissu"] = true, ["tela"] = true, ["stoffa"] = true,
+}
+
+-- Berufsgruppe je Subtyp für die Ansicht "Mit Namen und Berufsgruppen"
+local GROUP_BY_SUBTYPE = {}
+for group, names in pairs({
+    herb = { "herb", "kraut", "herbe", "hierba", "erba" },
+    ore = { "metal & stone", "erz und stein", "minerai et pierre", "metal y piedra", "metallo e pietra" },
+    leather = { "leather", "leder", "cuir", "cuero", "pelle" },
+    cloth = { "cloth", "stoff", "tissu", "tela", "stoffa" },
+}) do
+    for _, name in ipairs(names) do GROUP_BY_SUBTYPE[name] = group end
+end
+local GROUP_ORDER = { herb = 1, ore = 2, leather = 3, cloth = 4, other = 5 }
+local GROUP_TONE = { herb = "ok", ore = "they", leather = "warn", cloth = "grey", other = "grey" }
+local GROUP_LABEL = { herb = "groupHerb", ore = "groupOre", leather = "groupLeather", cloth = "groupCloth", other = "groupOther" }
+
+local function GroupOf(itemID)
+    local _, _, _, _, _, _, subType = GetItemData(itemID)
+    return subType and GROUP_BY_SUBTYPE[string.lower(subType)] or "other"
+end
+
+-- Etikettenfarben wie in SexyQuestHelper und SexyLoot
+local TONES = {
+    ok = { bg = { 0.082, 0.188, 0.11 }, fg = { 0.48, 0.88, 0.56 } },
+    warn = { bg = { 0.227, 0.173, 0.063 }, fg = { 0.94, 0.75, 0.29 } },
+    grey = { bg = { 0.16, 0.145, 0.12 }, fg = { 0.66, 0.61, 0.54 } },
+    they = { bg = { 0.078, 0.157, 0.227 }, fg = { 0.53, 0.8, 1 } },
 }
 
 local function IsGatheringMaterial(itemID)
@@ -194,11 +237,16 @@ local iconBorderIndex = 1
 -- UI
 ------------------------------------------------------------------------------
 
-local ROW_HEIGHT = 26
-local ICON_SIZE = 20
+local ROW_HEIGHT = 30        -- Karte in der Ansicht "Kompakt"
+local ICON_SIZE = 22
 local FRAME_WIDTH = 130
 local FRAME_PADDING = 8
-local HEADER_HEIGHT = 20
+local HEADER_HEIGHT = 30     -- Rahmen oben plus Titelband
+local GROUP_ROW_H = 28       -- Item-Zeile mit Namen
+local GROUP_HEADER_H = 22    -- Gruppenzeile (Beruf)
+local SLOT_ICON = 28         -- Icon in der Ansicht "Als Reihe"
+local FOOTER_H = 38          -- Fußleiste mit Reset-Knopf (nur "Mit Namen")
+local PILL_MIN = 34          -- Mindestbreite des Session-Etiketts
 
 -- Kein BackdropTemplate/SetBackdrop verwendet, da dessen Verfügbarkeit je nach
 -- Client-Generation unsicher ist. Stattdessen einfache, überall funktionierende
@@ -235,7 +283,10 @@ local BACKGROUND_STYLES = {
     { id = "brown",    label = L("bgBrown"),   r = 0.2,  g = 0.15, b = 0.08, a = 0.75 },
     { id = "tooltip",  label = L("bgTooltip"), texture = "Interface\\Tooltips\\UI-Tooltip-Background", a = 0.95 },
     { id = "dialog",   label = L("bgDialog"),  texture = "Interface\\DialogFrame\\UI-DialogBox-Background", a = 1 },
+    -- Neuer Standard im Stil von SexyQuestHelper (hinten angehängt, damit gespeicherte Indizes gültig bleiben)
+    { id = "quest",    label = L("bgQuest"),   r = 0.08, g = 0.065, b = 0.05, a = 0.96 },
 }
+local DEFAULT_BACKGROUND = #BACKGROUND_STYLES
 
 -- Auswählbare Rahmen-Stile, gemeinsam genutzt vom Fensterrahmen ("Rahmen wechseln")
 -- und den einzelnen Icon-Rahmen ("Icon-Rahmen wechseln").
@@ -245,8 +296,11 @@ local EDGE_STYLES = {
     { id = "thin_light", label = L("edgeThinLight"), r = 1,   g = 1,    b = 1,   a = 0.5,  thickness = 1 },
     { id = "thick_dark", label = L("edgeThickDark"), r = 0,   g = 0,    b = 0,   a = 0.95, thickness = 2 },
     { id = "gold",       label = L("edgeGold"),      r = 0.8, g = 0.65, b = 0.2, a = 0.9,  thickness = 1 },
+    { id = "quest",      label = L("edgeQuest"),     r = 0.42, g = 0.34, b = 0.15, a = 1, thickness = 2 },
 }
 local BORDER_STYLES = EDGE_STYLES
+local DEFAULT_BORDER = #EDGE_STYLES    -- Fensterrahmen: Quest-Look
+local DEFAULT_ICON_BORDER = 3          -- Icon-Rahmen: dünn, hell
 
 -- Setzt den per backgroundIndex gewählten Hintergrund (siehe BACKGROUND_STYLES).
 -- Bei "texture" wird die echte Bild-Textur verwendet, sonst die eingefärbte
@@ -321,13 +375,54 @@ local FONTS = {
     { label = L("fontMorpheus"), path = "Fonts\\MORPHEUS.TTF" },
     { label = L("fontNimrod"),   path = "Fonts\\NIM_____.TTF" },
 }
-local fontIndex = 1
+-- Neuer Standard: Marcellus für den Titel, Inter für den übrigen Text (SIL OFL, siehe
+-- media/fonts). Russische, koreanische und chinesische Clients brauchen andere Zeichen
+-- und behalten die Spielschrift.
+do
+    local loc = GetLocale()
+    local plain = loc == "ruRU" or loc == "koKR" or loc == "zhCN" or loc == "zhTW"
+    local dir = "Interface\\AddOns\\SexyHarvester\\media\\fonts\\"
+    FONTS[#FONTS + 1] = {
+        label = L("fontQuest"),
+        path = plain and "Fonts\\FRIZQT__.TTF" or (dir .. "Inter.ttf"),
+        titlePath = plain and "Fonts\\FRIZQT__.TTF" or (dir .. "Marcellus-Regular.ttf"),
+    }
+end
+local DEFAULT_FONT = #FONTS
+local fontIndex = DEFAULT_FONT
 local fontSize = 11 -- Standardgröße von GameFontNormalSmall/NumberFontNormalSmall
 
+-- Titelband (Quest-Look) mit Titel links und Badge rechts
+local band = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
+band:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -2)
+band:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
+band:SetHeight(HEADER_HEIGHT - 2)
+band:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+
 local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-title:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -6)
+title:SetPoint("LEFT", band, "LEFT", 10, 0)
 title:SetText(L("title"))
-title:SetTextColor(0.9, 0.9, 0.9)
+title:SetTextColor(0.91, 0.76, 0.42)
+
+local badgeBg = frame:CreateTexture(nil, "ARTWORK")
+badgeBg:SetPoint("RIGHT", band, "RIGHT", -6, 0)
+badgeBg:SetHeight(18)
+badgeBg:SetColorTexture(0.165, 0.14, 0.10, 1)
+local badgeText = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+badgeText:SetPoint("CENTER", badgeBg, "CENTER")
+badgeText:SetTextColor(0.78, 0.73, 0.64)
+
+-- Badge im Band, "" blendet es aus
+local function SetBadge(text)
+    local show = text ~= nil and text ~= ""
+    badgeBg:SetShown(show)
+    badgeText:SetShown(show)
+    if show then
+        badgeText:SetText(text)
+        badgeBg:SetWidth(badgeText:GetStringWidth() + 18)
+    end
+end
+SetBadge("")
 
 -- Positionen der Mengenanzahl relativ zum Icon, per Edit-Mode-Dropdown wählbar.
 -- "outside = true" heißt: die Zahl sitzt außerhalb des Icons (nicht als Overlay
@@ -347,11 +442,13 @@ local COUNT_POSITIONS = {
 }
 local countPositionIndex = 1
 
--- Gesamt-Layout der Icon-Liste: Icons untereinander (klassisch) oder
--- nebeneinander in einer horizontalen Reihe. Pfeil-Icon zeigt die Stapelrichtung.
+-- Ansicht der Liste (Option "Icon-Layout"): kompakt untereinander, als Reihe
+-- nebeneinander oder mit Namen nach Berufsgruppen sortiert. Pfeil-Icon zeigt die
+-- Stapelrichtung. Neue Einträge nur hinten anhängen (gespeicherte Indizes).
 local LIST_LAYOUTS = {
     { id = "vertical",   label = L("layoutVertical"),   texture = "Interface\\Buttons\\Arrow-Down-Up" },
     { id = "horizontal", label = L("layoutHorizontal"), texture = "Interface\\Buttons\\Arrow-Right-Up" },
+    { id = "grouped",    label = L("layoutGrouped"),    texture = "Interface\\Buttons\\Arrow-Down-Up" },
 }
 local listLayoutIndex = 1
 local ITEM_SLOT_WIDTH = 64 -- horizontaler Abstand zwischen Icons im Horizontal-Layout
@@ -372,42 +469,68 @@ local rowPool = {}
 
 -- Positioniert die Mengenanzahl und den Session-Zähler relativ zum Icon neu,
 -- entsprechend der aktuell gewählten COUNT_POSITIONS-Einstellung.
+-- Wird in der Ansicht "Kompakt" benutzt; die anderen Ansichten setzen die Anzahl
+-- selbst (siehe RenderRows).
 local function ApplyCountPosition(row)
     local pos = COUNT_POSITIONS[countPositionIndex] or COUNT_POSITIONS[1]
     row.count:ClearAllPoints()
     row.count:SetPoint(pos.anchor, row.icon, pos.relPoint, pos.x, pos.y)
     row.count:SetJustifyH(pos.justify)
-
-    -- Außerhalb des Icons hängt der Session-Zähler an der Mengenanzahl,
-    -- als Overlay auf dem Icon hängt er stattdessen direkt am Icon.
-    local anchorFrame = pos.outside and row.count or row.icon
-    row.gained:ClearAllPoints()
-    row.gained:SetPoint("LEFT", anchorFrame, "RIGHT", 6, 0)
 end
 
+-- Gruppenzeile und Reset-Knopf der Ansicht "Mit Namen" (der Knopf wird nach RenderRows
+-- erzeugt, ApplyFont kennt ihn deshalb schon vorab)
+local resetButton
+local headerPool = {}
+
 -- Wendet die aktuell gewählte Schriftart (siehe FONTS) und Schriftgröße
--- (fontSize) auf Titel sowie Mengen- und Session-Zähler-Text einer Zeile an.
--- Der Stil (z. B. OUTLINE) der bisherigen Font-Vorlage bleibt erhalten, nur
--- Pfad und Größe werden überschrieben.
+-- (fontSize) auf Titel, Badge sowie Mengen-, Session-Zähler- und Namenstext einer
+-- Zeile an. Der Stil (z. B. OUTLINE) der bisherigen Font-Vorlage bleibt erhalten,
+-- nur Pfad und Größe werden überschrieben. Der Titel nutzt, falls vorhanden, die
+-- Titelschrift (Marcellus).
 local function ApplyFont(row)
     local font = FONTS[fontIndex] or FONTS[1]
     local _, _, titleFlags = title:GetFont()
-    title:SetFont(font.path, fontSize, titleFlags)
+    title:SetFont(font.titlePath or font.path, fontSize + 3, titleFlags)
+    local _, _, badgeFlags = badgeText:GetFont()
+    badgeText:SetFont(font.path, fontSize, badgeFlags)
+    if resetButton then
+        local _, _, flags = resetButton.text:GetFont()
+        resetButton.text:SetFont(font.path, fontSize, flags)
+    end
+    for _, h in ipairs(headerPool) do
+        for _, fs in ipairs({ h.label, h.sum }) do
+            local _, _, flags = fs:GetFont()
+            fs:SetFont(font.path, fontSize, flags)
+        end
+    end
     if row then
         local _, _, countFlags = row.count:GetFont()
         row.count:SetFont(font.path, fontSize, countFlags)
         local _, _, gainedFlags = row.gained:GetFont()
         row.gained:SetFont(font.path, fontSize, gainedFlags)
+        local _, _, nameFlags = row.name:GetFont()
+        row.name:SetFont(font.path, fontSize + 1, nameFlags)
     end
 end
 
 local function CreateRow(index)
     local row = CreateFrame("Frame", nil, frame)
-    row:SetSize(FRAME_WIDTH - FRAME_PADDING * 2, ROW_HEIGHT)
+    row:SetHeight(ROW_HEIGHT)
+
+    -- Karte mit Trennlinie (nur in den Listenansichten sichtbar)
+    row.bg = row:CreateTexture(nil, "BACKGROUND")
+    row.bg:SetAllPoints()
+    row.bg:SetColorTexture(0.145, 0.125, 0.10, 1)
+    row.divider = row:CreateTexture(nil, "BORDER")
+    row.divider:SetPoint("TOPLEFT")
+    row.divider:SetPoint("TOPRIGHT")
+    row.divider:SetHeight(1)
+    row.divider:SetColorTexture(0.21, 0.19, 0.14, 1)
 
     local icon = row:CreateTexture(nil, "ARTWORK")
     icon:SetSize(ICON_SIZE, ICON_SIZE)
-    icon:SetPoint("LEFT", row, "LEFT", 0, 0)
+    icon:SetPoint("LEFT", row, "LEFT", 8, 0)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     row.icon = icon
 
@@ -419,9 +542,18 @@ local function CreateRow(index)
     local count = row:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
     row.count = count
 
+    -- Session-Zähler als grünes Etikett
+    row.gainedBg = row:CreateTexture(nil, "ARTWORK")
+    row.gainedBg:SetColorTexture(TONES.ok.bg[1], TONES.ok.bg[2], TONES.ok.bg[3], 1)
     local gained = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    gained:SetTextColor(0.2, 1.0, 0.2)
+    gained:SetTextColor(TONES.ok.fg[1], TONES.ok.fg[2], TONES.ok.fg[3])
     row.gained = gained
+
+    -- Name (nur in der Ansicht "Mit Namen")
+    local name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    name:SetJustifyH("LEFT")
+    name:SetWordWrap(false)
+    row.name = name
 
     ApplyCountPosition(row)
     ApplyFont(row)
@@ -468,103 +600,255 @@ local function ResizeFramePreservingPosition(width, height)
     end
 end
 
-local function RenderRows()
-    title:SetShown(not hideTitle)
-    local topOffset = hideTitle and FRAME_PADDING or (HEADER_HEIGHT + FRAME_PADDING)
-    local layout = LIST_LAYOUTS[listLayoutIndex] or LIST_LAYOUTS[1]
-    local horizontal = layout.id == "horizontal"
-    local growthStyle = GROWTH_STYLES[growthDirectionIndex] or GROWTH_STYLES[1]
+-- Gruppenzeile (Beruf) der Ansicht "Mit Namen": Etikett links, Summe rechts
+local function GetHeader(i)
+    local h = headerPool[i]
+    if h then return h end
+    h = CreateFrame("Frame", nil, frame)
+    h:SetHeight(GROUP_HEADER_H)
+    h.bg = h:CreateTexture(nil, "BACKGROUND")
+    h.bg:SetAllPoints()
+    h.bg:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+    h.pill = h:CreateTexture(nil, "ARTWORK")
+    h.pill:SetPoint("LEFT", h, "LEFT", 8, 0)
+    h.pill:SetHeight(16)
+    h.label = h:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    h.label:SetPoint("CENTER", h.pill, "CENTER")
+    h.sum = h:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    h.sum:SetPoint("RIGHT", h, "RIGHT", -8, 0)
+    h.sum:SetTextColor(0.61, 0.57, 0.5)
+    headerPool[i] = h
+    ApplyFont() -- Schrift auch auf die neue Gruppenzeile anwenden
+    return h
+end
 
-    -- Sortierte Liste der aktuell gehaltenen Sammelrohstoffe aufbauen.
+-- Setzt das Session-Etikett (Fläche und Text darauf) an einen Ankerpunkt
+local function PlaceGained(row, point, relTo, relPoint, x, y, width)
+    row.gainedBg:ClearAllPoints()
+    row.gainedBg:SetPoint(point, relTo, relPoint, x, y)
+    row.gainedBg:SetSize(width, 16)
+    row.gained:ClearAllPoints()
+    row.gained:SetPoint("CENTER", row.gainedBg, "CENTER", 0, 0)
+end
+
+local function RenderRows()
+    local layout = LIST_LAYOUTS[listLayoutIndex] or LIST_LAYOUTS[1]
+    local horizontal, grouped = layout.id == "horizontal", layout.id == "grouped"
+    local growthStyle = GROWTH_STYLES[growthDirectionIndex] or GROWTH_STYLES[1]
+    local up = growthStyle.id == "up"
+
+    title:SetShown(not hideTitle)
+    band:SetShown(not hideTitle)
+    local topOffset = hideTitle and FRAME_PADDING or (HEADER_HEIGHT + 4)
+
+    -- Sortierte Liste der aktuell gehaltenen Sammelrohstoffe aufbauen. In der Ansicht
+    -- "Mit Namen" zuerst nach Berufsgruppe, sonst nur nach Name.
     local entries = {}
     for itemID, count in pairs(currentCounts) do
         if count and count > 0 then
             local name = GetItemData(itemID)
-            entries[#entries + 1] = { itemID = itemID, count = count, name = name or tostring(itemID) }
+            entries[#entries + 1] = {
+                itemID = itemID, count = count, name = name or tostring(itemID),
+                group = grouped and GroupOf(itemID) or nil,
+            }
         end
     end
-    table.sort(entries, function(a, b) return a.name < b.name end)
+    table.sort(entries, function(a, b)
+        if grouped and a.group ~= b.group then return GROUP_ORDER[a.group] < GROUP_ORDER[b.group] end
+        return a.name < b.name
+    end)
 
+    -- Badge im Band: in dieser Session gesammelte Menge insgesamt
+    local totalGained = 0
+    for _, e in ipairs(entries) do totalGained = totalGained + (sessionGained[e.itemID] or 0) end
+    if not hideTitle and not hideGained and totalGained > 0 then
+        SetBadge("+" .. totalGained .. (grouped and (" " .. L("session")) or ""))
+    else
+        SetBadge("")
+    end
+
+    -- Inhalt der Zeilen; dabei die Breiten der Spalten messen
+    local maxGainW, maxCountW, maxNameW, anyGained = 0, 0, 0, false
     for i, entry in ipairs(entries) do
         local row = GetRow(i)
         row.itemID = entry.itemID
         row.icon:SetTexture(GetItemIcon(entry.itemID))
         row.count:SetText(entry.count)
         row.count:SetShown(not hideCount)
+        row.name:SetText(entry.name)
+        row.name:SetShown(grouped)
+        row.bg:SetShown(not horizontal)
+        row.divider:SetShown(not horizontal)
 
         local gained = sessionGained[entry.itemID]
-        if (not hideGained) and gained and gained > 0 then
-            row.gained:SetText("+" .. gained)
-            row.gained:Show()
-        else
-            row.gained:SetText("")
-            row.gained:Hide()
+        local showGained = (not hideGained) and gained and gained > 0
+        row.gained:SetText(showGained and ("+" .. gained) or "")
+        row.gained:SetShown(showGained and true or false)
+        row.gainedBg:SetShown(showGained and true or false)
+        if showGained then
+            anyGained = true
+            maxGainW = math.max(maxGainW, row.gained:GetStringWidth())
         end
-
-        row:ClearAllPoints()
-        if horizontal then
-            -- Icons nebeneinander in schmalen, festen Spalten, damit sich die
-            -- Mauszeiger-Trefferflächen benachbarter Icons nicht überlappen.
-            row:SetWidth(ITEM_SLOT_WIDTH)
-            if growthStyle.id == "left" then
-                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -FRAME_PADDING - (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
-            else
-                row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING + (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
-            end
-        else
-            -- Trefferfläche auf die Icon-Breite begrenzen (statt der festen
-            -- FRAME_WIDTH-Konstante, die nichts mehr mit der tatsächlichen,
-            -- dynamisch berechneten Fensterbreite zu tun hat und die Row weit
-            -- über das sichtbare Fenster hinausragen ließ).
-            row:SetWidth(ICON_SIZE)
-            if growthStyle.id == "up" then
-                row:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", FRAME_PADDING, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
-            else
-                row:SetPoint("TOPLEFT", frame, "TOPLEFT", FRAME_PADDING, -topOffset - (i - 1) * ROW_HEIGHT)
-            end
-        end
-        row:Show()
+        maxCountW = math.max(maxCountW, row.count:GetStringWidth())
+        maxNameW = math.max(maxNameW, row.name:GetStringWidth())
     end
+    local pillW = anyGained and math.max(PILL_MIN, maxGainW + 18) or 0
 
+    for _, h in ipairs(headerPool) do h:Hide() end
     for i = #entries + 1, #rowPool do
         rowPool[i]:Hide()
     end
+    resetButton:SetShown(grouped and #entries > 0)
 
     if #entries == 0 then
         frame:Hide()
-    elseif horizontal then
-        ResizeFramePreservingPosition(FRAME_PADDING * 2 + #entries * ITEM_SLOT_WIDTH, topOffset + FRAME_PADDING + ROW_HEIGHT)
-        frame:Show()
-    else
-        -- Breite im Vertikal-Layout an den tatsächlich benötigten Inhalt anpassen
-        -- (Icon + ggf. außerhalb liegende Mengenanzahl/Session-Zähler), statt
-        -- immer die feste FRAME_WIDTH zu nutzen, die für den Titeltext gedacht war.
-        local pos = COUNT_POSITIONS[countPositionIndex] or COUNT_POSITIONS[1]
-        local outsideHorizontal = pos.outside and (pos.anchor == "LEFT" or pos.anchor == "RIGHT")
-        local contentWidth = ICON_SIZE
+        return
+    end
+
+    local width, height
+    if horizontal then
+        -- Als Reihe: je Rohstoff ein Fach mit Icon, Anzahl darunter und Session-Etikett
+        local slotH = 6 + SLOT_ICON + (hideCount and 0 or 16) + (anyGained and 22 or 0) + 6
         for i = 1, #entries do
             local row = rowPool[i]
-            local w = ICON_SIZE
-            if outsideHorizontal and not hideCount then
-                w = w + 4 + row.count:GetStringWidth()
+            row:ClearAllPoints()
+            row:SetSize(ITEM_SLOT_WIDTH, slotH)
+            -- feste, schmale Spalten, damit sich die Mauszeiger-Trefferflächen nicht überlappen
+            if growthStyle.id == "left" then
+                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4 - (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
+            else
+                row:SetPoint("TOPLEFT", frame, "TOPLEFT", 4 + (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
             end
-            if row.gained:IsShown() then
-                w = w + 6 + row.gained:GetStringWidth()
+            row.icon:SetSize(SLOT_ICON, SLOT_ICON)
+            row.icon:ClearAllPoints()
+            row.icon:SetPoint("TOP", row, "TOP", 0, -6)
+            row.count:ClearAllPoints()
+            row.count:SetPoint("TOP", row.icon, "BOTTOM", 0, -3)
+            row.count:SetWidth(0)
+            row.count:SetJustifyH("CENTER")
+            PlaceGained(row, "TOP", hideCount and row.icon or row.count, "BOTTOM", 0, -4, pillW)
+            row:Show()
+        end
+        width = 8 + #entries * ITEM_SLOT_WIDTH
+        height = topOffset + slotH
+    elseif not grouped then
+        -- Kompakt: Icon mit Anzahl (Position wählbar), Session-Etikett rechts
+        local pos = COUNT_POSITIONS[countPositionIndex] or COUNT_POSITIONS[1]
+        local outsideLeft = pos.outside and pos.anchor == "RIGHT" and not hideCount
+        local outsideRight = pos.outside and pos.anchor == "LEFT" and not hideCount
+        local leftExtra = outsideLeft and (maxCountW + 4) or 0
+        local rightExtra = outsideRight and (maxCountW + 4) or 0
+        for i = 1, #entries do
+            local row = rowPool[i]
+            row:ClearAllPoints()
+            row:SetHeight(ROW_HEIGHT)
+            if up then
+                row:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
+                row:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
+            else
+                row:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -topOffset - (i - 1) * ROW_HEIGHT)
+                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -topOffset - (i - 1) * ROW_HEIGHT)
             end
-            if w > contentWidth then
-                contentWidth = w
+            row.icon:SetSize(ICON_SIZE, ICON_SIZE)
+            row.icon:ClearAllPoints()
+            row.icon:SetPoint("LEFT", row, "LEFT", 8 + leftExtra, 0)
+            row.count:SetWidth(0)
+            ApplyCountPosition(row)
+            PlaceGained(row, "RIGHT", row, "RIGHT", -8, 0, pillW)
+            row:Show()
+        end
+        width = math.max(120, 8 + leftExtra + ICON_SIZE + rightExtra + 8 + (anyGained and (12 + pillW) or 0))
+        height = topOffset + #entries * ROW_HEIGHT + FRAME_PADDING
+    else
+        -- Mit Namen: Gruppenzeile je Beruf, darunter Icon, Name, Anzahl und Session-Etikett
+        local colW = anyGained and (pillW + 8) or 0
+        local countRight = 8 + colW
+        local countW = hideCount and 0 or (maxCountW + 2)
+        local groupSums = {}
+        for _, e in ipairs(entries) do groupSums[e.group] = (groupSums[e.group] or 0) + e.count end
+
+        local elements, lastGroup, headers = {}, nil, 0
+        for i, e in ipairs(entries) do
+            if e.group ~= lastGroup then
+                lastGroup = e.group
+                headers = headers + 1
+                local h = GetHeader(headers)
+                local tone = TONES[GROUP_TONE[e.group]]
+                h.label:SetText(L(GROUP_LABEL[e.group]))
+                h.label:SetTextColor(tone.fg[1], tone.fg[2], tone.fg[3])
+                h.pill:SetColorTexture(tone.bg[1], tone.bg[2], tone.bg[3], 1)
+                h.pill:SetWidth(h.label:GetStringWidth() + 18)
+                h.sum:SetText(groupSums[e.group])
+                elements[#elements + 1] = { h, GROUP_HEADER_H }
             end
+            local row = rowPool[i]
+            row:SetHeight(GROUP_ROW_H)
+            row.icon:SetSize(ICON_SIZE, ICON_SIZE)
+            row.icon:ClearAllPoints()
+            row.icon:SetPoint("LEFT", row, "LEFT", 8, 0)
+            row.count:ClearAllPoints()
+            row.count:SetPoint("RIGHT", row, "RIGHT", -countRight, 0)
+            row.count:SetWidth(countW)
+            row.count:SetJustifyH("RIGHT")
+            row.name:ClearAllPoints()
+            row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
+            row.name:SetPoint("RIGHT", row, "RIGHT", -(countRight + (hideCount and 0 or countW + 8)), 0)
+            PlaceGained(row, "RIGHT", row, "RIGHT", -8, 0, pillW)
+            elements[#elements + 1] = { row, GROUP_ROW_H }
         end
 
-        local width = FRAME_PADDING * 2 + contentWidth
-        if not hideTitle then
-            width = math.max(width, FRAME_PADDING * 2 + title:GetStringWidth())
+        local offset = 0
+        for _, el in ipairs(elements) do
+            local f, h = el[1], el[2]
+            f:ClearAllPoints()
+            if up then
+                f:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2, FOOTER_H + offset)
+                f:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, FOOTER_H + offset)
+            else
+                f:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -(topOffset + offset))
+                f:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -(topOffset + offset))
+            end
+            f:Show()
+            offset = offset + h
         end
-
-        ResizeFramePreservingPosition(width, topOffset + FRAME_PADDING + #entries * ROW_HEIGHT)
-        frame:Show()
+        width = math.min(340, math.max(220, 8 + ICON_SIZE + 8 + maxNameW + (hideCount and 0 or (8 + countW)) + 8 + colW))
+        height = topOffset + offset + FOOTER_H
     end
+
+    -- Titel und Badge müssen ins Band passen
+    if not hideTitle then
+        local need = 10 + title:GetStringWidth() + 12
+        if badgeBg:IsShown() then need = need + badgeBg:GetWidth() + 12 end
+        width = math.max(width, need)
+    end
+    ResizeFramePreservingPosition(width, height)
+    frame:Show()
 end
+
+-- Session-Zähler zurücksetzen (Knopf in der Ansicht "Mit Namen" und /sh reset)
+local function ResetSession()
+    wipe(sessionGained)
+    RenderRows()
+    print("|cff1eff00SexyHarvester|r: " .. L("resetConfirm"))
+end
+
+resetButton = CreateFrame("Button", nil, frame)
+resetButton:SetHeight(22)
+resetButton:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", FRAME_PADDING, 8)
+resetButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -FRAME_PADDING, 8)
+resetButton:RegisterForClicks("LeftButtonUp")
+resetButton.bg = resetButton:CreateTexture(nil, "BACKGROUND")
+resetButton.bg:SetAllPoints()
+resetButton.bg:SetColorTexture(0.184, 0.42, 0.235, 1)
+resetButton.hl = resetButton:CreateTexture(nil, "HIGHLIGHT")
+resetButton.hl:SetAllPoints()
+resetButton.hl:SetColorTexture(1, 1, 1, 0.25)
+resetButton.text = resetButton:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+resetButton.text:SetAllPoints()
+resetButton.text:SetText(L("resetButton"))
+resetButton:SetScript("OnClick", ResetSession)
+resetButton:Hide()
+ApplyFont()
 
 ------------------------------------------------------------------------------
 -- Inventar-Scan
@@ -698,9 +982,7 @@ end
 local function SetCountPositionIndex(index)
     countPositionIndex = index
     SexyHarvesterDB.style.countPosition = index
-    for _, row in ipairs(rowPool) do
-        ApplyCountPosition(row)
-    end
+    RenderRows() -- setzt Anzahl und Breite je nach Ansicht neu
 end
 
 local function SetListLayoutIndex(index)
@@ -835,10 +1117,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- echte Dropdowns weiter unten. Vor der Frame-Size/Schriftgröße-
             -- Registrierung geladen, da deren Anfangswert (fontSize) davon abhängt.
             SexyHarvesterDB.style = SexyHarvesterDB.style or {}
-            backgroundIndex = SexyHarvesterDB.style.background or 1
-            borderIndex = SexyHarvesterDB.style.border or 1
-            iconBorderIndex = SexyHarvesterDB.style.iconBorder or 1
-            fontIndex = SexyHarvesterDB.style.font or 1
+            -- Ohne gespeicherte Wahl gilt der Quest-Look (Fläche, Goldrand, Marcellus + Inter)
+            backgroundIndex = SexyHarvesterDB.style.background or DEFAULT_BACKGROUND
+            borderIndex = SexyHarvesterDB.style.border or DEFAULT_BORDER
+            iconBorderIndex = SexyHarvesterDB.style.iconBorder or DEFAULT_ICON_BORDER
+            fontIndex = SexyHarvesterDB.style.font or DEFAULT_FONT
             fontSize = SexyHarvesterDB.style.fontSize or 11
             countPositionIndex = SexyHarvesterDB.style.countPosition or 1
             listLayoutIndex = SexyHarvesterDB.style.listLayout or 1
@@ -920,9 +1203,7 @@ SLASH_SEXYHARVESTER2 = "/sexyharvester"
 SlashCmdList["SEXYHARVESTER"] = function(msg)
     msg = string.lower(strtrim(msg or ""))
     if msg == "reset" then
-        wipe(sessionGained)
-        RenderRows()
-        print("|cff1eff00SexyHarvester|r: " .. L("resetConfirm"))
+        ResetSession()
     elseif msg == "debug" then
         print("|cff1eff00SexyHarvester|r Debug: Taschen-Rohdaten")
         local numBags = math.max(NUM_BAG_SLOTS or 4, REAGENT_BAG_INDEX)
