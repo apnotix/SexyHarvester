@@ -1,4 +1,4 @@
-## Interface: 16001
+## Interface: 120100, 16001
 ## Title: |cff1eff00SexyHarvester|r
 ## Notes: Zeigt Sammelberuf-Rohstoffe (Kräuter, Erz, Leder, Stoff) im Inventar samt Session-Zähler an.
 ## Notes-enUS: Shows gathering materials (herbs, ore, leather, cloth) in your bags with a session counter.

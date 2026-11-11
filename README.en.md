@@ -6,7 +6,8 @@
 Herbs, ore, leather and cloth from your bags with their counts and a green `+N` for this session's haul. Three views, fully adjustable in Edit Mode.
 
 ![WoW Forever](https://img.shields.io/badge/WoW-Forever-e8c26a?style=for-the-badge)
-![Interface](https://img.shields.io/badge/Interface-16001-3b2b12?style=for-the-badge)
+![Retail](https://img.shields.io/badge/WoW-Retail-c8a24a?style=for-the-badge)
+![Interface](https://img.shields.io/badge/Interface-120100%20%7C%2016001-3b2b12?style=for-the-badge)
 ![Edit Mode](https://img.shields.io/badge/Edit%20Mode-yes-4fc16a?style=for-the-badge)
 
 [🇩🇪 Deutsche Version](README.md)
@@ -67,7 +68,7 @@ Marcellus and Inter live in `media/fonts` (SIL Open Font License, license texts 
 
 ## 📥 Installation
 
-1. Copy the `SexyHarvester` folder (with `SexyHarvester.toc` directly inside) into your `Interface/AddOns` directory of the Forever client.
+1. Copy the `SexyHarvester` folder (with `SexyHarvester.toc` directly inside) into your `Interface/AddOns` directory (Forever or Retail).
 2. Start the game or `/reload`.
 3. Open Edit Mode and place the window as you like.
 
@@ -85,7 +86,7 @@ Long form: `/sexyharvester`
 
 ## ⚠️ Good to know
 
-- 🧪 The Lua API of World of Warcraft: Forever could not be pinned down during development. The addon therefore supports both classic (`GetContainerItemInfo`, `GetItemInfo`) and modern variants (`C_Container.*`, `C_Item.*`).
+- 🧪 The addon runs on **World of Warcraft: Forever** and **Retail**. Because the API differs between the two clients, it supports both classic (`GetContainerItemInfo`, `GetItemInfo`) and modern variants (`C_Container.*`, `C_Item.*`).
 - 🕒 The haul counts from login. What you already carry when you log in is the baseline, not a `+N`.
 - 🫥 If there are no materials in your bags, the window hides.
 - 🎛️ **Count position** only applies to the Compact view.

@@ -151,31 +151,29 @@ end
 ------------------------------------------------------------------------------
 -- Erkennung von Sammelberuf-Rohstoffen anhand des lokalisierten Subtyps.
 -- Deckt Kräuterkunde, Bergbau, Kürschnerei und Stoff (Leinenstoff, Wollstoff,
--- ...) ab (Deutsch + Englisch, sowie ein paar weitere Sprachen als
--- Best-Effort-Fallback).
+-- ...) ab. Die Namen gelten für Forever und Retail (Deutsch + Englisch, sowie
+-- ein paar weitere Sprachen als Best-Effort-Fallback). Aus derselben Liste
+-- entsteht die Berufsgruppe für die Ansicht "Mit Namen und Berufsgruppen".
 ------------------------------------------------------------------------------
 
-local GATHERING_SUBTYPES = {
+local SUBTYPES_BY_GROUP = {
     -- Kräuterkunde
-    ["herb"] = true, ["kraut"] = true, ["herbe"] = true, ["hierba"] = true, ["erba"] = true,
+    herb = { "herb", "kraut", "kräuter", "herbe", "herbes", "hierba", "hierbas", "erba" },
     -- Bergbau
-    ["metal & stone"] = true, ["erz und stein"] = true, ["minerai et pierre"] = true,
-    ["metal y piedra"] = true, ["metallo e pietra"] = true,
+    ore = { "metal & stone", "erz und stein", "metall & stein", "minerai et pierre", "métal et pierre",
+        "metal y piedra", "metallo e pietra" },
     -- Kürschnerei
-    ["leather"] = true, ["leder"] = true, ["cuir"] = true, ["cuero"] = true, ["pelle"] = true,
+    leather = { "leather", "leder", "cuir", "cuero", "pelle" },
     -- Stoff (Leinenstoff, Wollstoff, ...)
-    ["cloth"] = true, ["stoff"] = true, ["tissu"] = true, ["tela"] = true, ["stoffa"] = true,
+    cloth = { "cloth", "stoff", "tissu", "tela", "stoffa" },
 }
 
--- Berufsgruppe je Subtyp für die Ansicht "Mit Namen und Berufsgruppen"
-local GROUP_BY_SUBTYPE = {}
-for group, names in pairs({
-    herb = { "herb", "kraut", "herbe", "hierba", "erba" },
-    ore = { "metal & stone", "erz und stein", "minerai et pierre", "metal y piedra", "metallo e pietra" },
-    leather = { "leather", "leder", "cuir", "cuero", "pelle" },
-    cloth = { "cloth", "stoff", "tissu", "tela", "stoffa" },
-}) do
-    for _, name in ipairs(names) do GROUP_BY_SUBTYPE[name] = group end
+local GATHERING_SUBTYPES, GROUP_BY_SUBTYPE = {}, {}
+for group, names in pairs(SUBTYPES_BY_GROUP) do
+    for _, name in ipairs(names) do
+        GATHERING_SUBTYPES[name] = true
+        GROUP_BY_SUBTYPE[name] = group
+    end
 end
 local GROUP_ORDER = { herb = 1, ore = 2, leather = 3, cloth = 4, other = 5 }
 local GROUP_TONE = { herb = "ok", ore = "they", leather = "warn", cloth = "grey", other = "grey" }

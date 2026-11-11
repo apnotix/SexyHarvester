@@ -6,7 +6,8 @@
 Kräuter, Erz, Leder und Stoff aus deinen Taschen mit Stückzahl und einem grünen `+N` für die Beute dieser Sitzung. Drei Ansichten, frei einstellbar im Edit Mode.
 
 ![WoW Forever](https://img.shields.io/badge/WoW-Forever-e8c26a?style=for-the-badge)
-![Interface](https://img.shields.io/badge/Interface-16001-3b2b12?style=for-the-badge)
+![Retail](https://img.shields.io/badge/WoW-Retail-c8a24a?style=for-the-badge)
+![Interface](https://img.shields.io/badge/Interface-120100%20%7C%2016001-3b2b12?style=for-the-badge)
 ![Edit Mode](https://img.shields.io/badge/Edit%20Mode-ja-4fc16a?style=for-the-badge)
 
 [🇬🇧 English version](README.en.md)
@@ -67,7 +68,7 @@ Marcellus und Inter liegen in `media/fonts` (SIL Open Font License, Lizenztexte 
 
 ## 📥 Installation
 
-1. Ordner `SexyHarvester` (mit `SexyHarvester.toc` direkt darin) in dein `Interface/AddOns`-Verzeichnis des Forever-Clients kopieren.
+1. Ordner `SexyHarvester` (mit `SexyHarvester.toc` direkt darin) in dein `Interface/AddOns`-Verzeichnis (Forever oder Retail) kopieren.
 2. Spiel starten oder `/reload`.
 3. Edit Mode öffnen und das Fenster nach Wunsch platzieren.
 
@@ -85,7 +86,7 @@ Langform: `/sexyharvester`
 
 ## ⚠️ Gut zu wissen
 
-- 🧪 Der Lua-API-Stand von World of Warcraft: Forever war bei der Entwicklung nicht sicher zu klären. Das Addon unterstützt deshalb klassische (`GetContainerItemInfo`, `GetItemInfo`) und modernere Varianten (`C_Container.*`, `C_Item.*`).
+- 🧪 Das Addon läuft auf **World of Warcraft: Forever** und **Retail**. Weil sich die API der beiden Clients unterscheidet, unterstützt es klassische (`GetContainerItemInfo`, `GetItemInfo`) und modernere Varianten (`C_Container.*`, `C_Item.*`).
 - 🕒 Die Beute zählt ab dem Login. Was du beim Einloggen schon dabeihast, ist der Ausgangswert und kein `+N`.
 - 🫥 Sind keine Rohstoffe in den Taschen, blendet sich das Fenster aus.
 - 🎛️ Die **Anzahl-Position** gilt nur in der Ansicht „Kompakt“.

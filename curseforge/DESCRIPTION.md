@@ -4,7 +4,7 @@
 
 SexyHarvester shows every gathering material in your bags (herbs, ore, leather and cloth) with its current count and a green **+N** for how much you picked up in this session. It stays out of the way when your bags hold nothing to show and appears by itself as soon as you gather.
 
-Built for **World of Warcraft: Forever**. Styled like the rest of the Sexy addons: dark brown panel, gold frame, title band with a badge, card rows and colored labels.
+Works on **World of Warcraft: Forever** and **Retail**. Styled like the rest of the Sexy addons: dark brown panel, gold frame, title band with a badge, card rows and colored labels.
 
 ## Features
 

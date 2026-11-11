@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2
+
+- Läuft jetzt auch auf Retail: Die `.toc` führt neben Forever (16001) auch Retail (120100). Dadurch heißt das Release-Paket nicht mehr "...-forever.zip".
+- Rohstoff-Erkennung kennt die Subtyp-Namen von Retail (z. B. "Kräuter" und "Metall & Stein" auf deutschen Clients, "Herbes" und "Métal et pierre" auf französischen). Die Listen für Erkennung und Berufsgruppen kommen jetzt aus einer gemeinsamen Tabelle.
+
 ## 1.0.1
 
 - Neuer Look im Stil von SexyQuestHelper und SexyLoot: dunkelbraune Fläche, 2-px-Goldrand, Titelband mit Badge (gesamte Session-Ausbeute), Karten mit Trennlinien und das `+N` als grünes Etikett. Wer schon einen eigenen Stil für Hintergrund, Rahmen oder Schrift gespeichert hat, behält ihn; die Quest-Look-Einträge stehen am Ende der Auswahllisten.
