@@ -86,7 +86,7 @@ Long form: `/sexyharvester`
 
 ## 🐞 Reporting bugs
 
-Please report bugs and requests as an [issue on GitHub](https://github.com/apnotix/SexyHarvester/issues). Enable `/console scriptErrors 1` first and include the Lua error message.
+Found a bug or have a request? Please leave a **comment** here on CurseForge. Enable `/console scriptErrors 1` first and include the Lua error message.
 
 ## 🙏 Credits
 
