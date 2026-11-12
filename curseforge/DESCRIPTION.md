@@ -1,5 +1,7 @@
 # 🌿 SexyHarvester
 
+![WoW Forever](https://img.shields.io/badge/WoW-Forever-e8c26a?style=for-the-badge) ![Retail](https://img.shields.io/badge/WoW-Retail-c8a24a?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120100%20%7C%2016001-3b2b12?style=for-the-badge) ![Edit Mode](https://img.shields.io/badge/Edit%20Mode-yes-4fc16a?style=for-the-badge)
+
 **Everything you gather, at a glance.**
 
 Herbs, ore, leather and cloth from your bags with their counts and a green **+N** for this session's haul. Three views, fully adjustable in Edit Mode.
