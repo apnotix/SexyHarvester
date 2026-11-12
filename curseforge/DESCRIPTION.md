@@ -1,56 +1,97 @@
-# SexyHarvester
+# 🌿 SexyHarvester
 
 **Everything you gather, at a glance.**
 
-SexyHarvester shows every gathering material in your bags (herbs, ore, leather and cloth) with its current count and a green **+N** for how much you picked up in this session. It stays out of the way when your bags hold nothing to show and appears by itself as soon as you gather.
+Herbs, ore, leather and cloth from your bags with their counts and a green **+N** for this session's haul. Three views, fully adjustable in Edit Mode.
 
-Works on **World of Warcraft: Forever** and **Retail**. Styled like the rest of the Sexy addons: dark brown panel, gold frame, title band with a badge, card rows and colored labels.
+Works on **World of Warcraft: Forever** and **Retail**.
 
-## Features
+---
 
-- **Detects materials by itself** - herbs, ore, leather and cloth are recognised through the item subtype, there is no fixed item list. New materials just work.
-- **Count and session counter** - the amount in your bags plus a green **+N** label for what you gathered since login (or since the last reset).
-- **Three views** - switch with one option:
-  - **Compact** - one card per material with icon, count and session label.
-  - **As row** - materials side by side, count under the icon.
-  - **With names and profession groups** - group rows for Herbs, Ore, Leather and Cloth with a total, then icon, name, count and session label, plus a **Reset session** button.
-- **Title band with a badge** - the badge shows everything you gathered this session.
-- **Item tooltips** - hover an icon to see the normal item tooltip.
-- **Edit Mode** - move and scale the window with Blizzard's own Edit Mode. All options live there.
-- **English and German** localization.
+## ✨ What SexyHarvester does
 
-## Settings (Esc > Edit Mode > select "Professions")
+### 🧺 Materials at a glance
+
+The window appears by itself as soon as your bags hold gathering materials.
+
+- 🔎 **Detects materials by itself:** Herbalism, Mining, Skinning and cloth through the item subtype, no fixed item list. New materials work right away. Equippable items such as leather armor are ignored.
+- 🔢 **Count** per material, from all bags including the reagent bag.
+- ➕ **Session counter:** a green **+N** shows how much you picked up since login. The title band shows the total as a badge.
+- 🖱️ **Tooltip:** hover an icon to see the normal item tooltip.
+- 🔄 **Reset** with `/sh reset` or the button in the window.
+
+### 🪟 Three views
+
+The **Icon layout** option switches between them:
+
+- 🗂️ **Compact (stacked):** icon, count and session label, the default.
+- ↔️ **As row (side by side):** one slot per material with the icon, the count below and the session label.
+- 📚 **With names and profession groups:** group rows for Herbs, Ore, Leather and Cloth with a total, then icon, name, count and session label, plus the "Reset session" button.
+
+### 🎨 Look
+
+Dark brown surface, gold frame, title band with a badge, card rows with dividers and the **+N** as a green label, matching **SexyLoot** and **SexyQuestHelper**. Fonts: **Marcellus** for the title, **Inter** for text. Background, border and font can still be changed.
+
+---
+
+## 🛠️ Everything adjustable in Edit Mode
+
+**Esc** → **Edit Mode** → select **"Professions"**. SexyHarvester uses the [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) library for this.
 
 | Option | Effect |
-|---|---|
-| Position, clamp to screen, size (50 - 200 %) | Placement and scale of the window |
-| Icon layout | Compact, as row, or with names and profession groups |
-| Growth direction | Down, up, right or left |
-| Count position | On the icon (center and four corners) or outside it (right, left, above, below), in the compact view |
-| Hide title / count / session counter | Turn single parts off |
-| Background, border, icon border | Dark brown quest look (default), plus the older black, gray, parchment, tooltip and gold styles |
-| Font and font size | Marcellus + Inter (default) or one of the game fonts, size 8 - 24 |
+| --- | --- |
+| 📍 Position | Drag and drop, can be clamped to the screen edge |
+| 🔍 Size | 50 to 200 % |
+| 🧩 Icon layout | Compact, as row, or with names and profession groups |
+| ⬇️ Growth direction | Down, up, right or left |
+| 🔢 Count position | On the icon (center, four corners) or outside it (right, left, above, below), in the Compact view |
+| 👁️ Hide | Title, count or session counter individually |
+| 🖼️ Background, border, icon border | Lists, the default is the quest look |
+| 🔤 Font and size | Marcellus + Inter or a game font, size 8 to 24 |
 
-## Slash commands
+If you already saved your own background, border or font style, it is kept. The new quest look entries sit at the end of the lists.
 
-| Command | Description |
-|---|---|
-| `/sh reset` | Reset the session counter (the **+N** labels) |
-| `/sh debug` | Print the raw bag data and the window state to chat (for troubleshooting) |
-| `/sh` | Show the command list |
+---
+
+## 🌍 Languages
+
+German and English. German clients show German, every other client shows English.
+
+## 🔤 Fonts
+
+Marcellus and Inter are bundled (SIL Open Font License). On Russian, Korean and Chinese clients SexyHarvester uses the game font.
+
+---
+
+## ⌨️ Commands
+
+| Command | Effect |
+| --- | --- |
+| `/sh` | Command list |
+| `/sh reset` | Reset the session counter (**+N**) |
+| `/sh debug` | Print the raw bag data and the window state to chat |
 
 Long form: `/sexyharvester`
 
-## Notes
+---
 
-- The session counter starts at your login. Items you already carry when you log in count as the baseline, not as gathered.
-- The window hides itself when no gathering material is in your bags.
-- Equippable leather armor is ignored. Only real materials are counted.
-- Fonts: Marcellus and Inter are bundled (SIL Open Font License). Russian, Korean and Chinese clients keep the game font.
-- If you hit a Lua error, please report it via the issue tracker with the exact message.
+## ⚠️ Good to know
 
-## Credits
+- 🧪 The addon runs on **World of Warcraft: Forever** and **Retail** and supports both the classic and the modern bag and item API.
+- 🕒 The haul counts from login. What you already carry when you log in is the baseline, not a **+N**.
+- 🫥 If there are no materials in your bags, the window hides.
+- 🎛️ **Count position** only applies to the Compact view.
 
-- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) by Teelo (embedded)
-- LibStub (public domain) and LibUIDropDownMenu (embedded)
-- Fonts: Marcellus and Inter (SIL Open Font License 1.1)
+## 🐞 Reporting bugs
+
+Please report bugs and requests as an [issue on GitHub](https://github.com/apnotix/SexyHarvester/issues). Enable `/console scriptErrors 1` first and include the Lua error message.
+
+## 🙏 Credits
+
+- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) by **Teelo** (library EditModeExpanded-1.0, embedded, author credited as its license requires)
+- **LibStub** (public domain) and **LibUIDropDownMenu** (fork from Questie), embedded
+- Fonts [Marcellus](https://fonts.google.com/specimen/Marcellus) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
+
+---
+
+Made by **apnotix** · Also by me: **SexyLoot**, **SexyQuestHelper**, **SexyInterrupter**
