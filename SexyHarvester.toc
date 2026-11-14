@@ -12,7 +12,6 @@
 ## SavedVariables: SexyHarvesterDB
 
 Libs\LibStub.lua
-Libs\LibUIDropDownMenu\LibUIDropDownMenu.lua
-Libs\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
+Libs\SexyEditMode\SexyEditMode.lua
 
 SexyHarvester.lua

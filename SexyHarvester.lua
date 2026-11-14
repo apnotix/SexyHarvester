@@ -70,6 +70,11 @@ local STRINGS = {
     groupOther      = { de = "Sonstiges",                  en = "Other" },
     session         = { de = "Session",                    en = "Session" },
     resetButton     = { de = "Session zurücksetzen",       en = "Reset session" },
+    sectionView     = { de = "Anzeige",                    en = "Display" },
+    sectionLook     = { de = "Darstellung",                en = "Appearance" },
+    previewHerb     = { de = "Friedensblume",              en = "Peacebloom" },
+    previewOre      = { de = "Kupfererz",                  en = "Copper Ore" },
+    previewLeather  = { de = "Leichtes Leder",             en = "Light Leather" },
 
     growthDown      = { de = "Nach unten",                  en = "Downward" },
     growthUp        = { de = "Nach oben",                   en = "Upward" },
@@ -81,8 +86,10 @@ local STRINGS = {
     helpReset       = { de = "/sh reset - Session-Zähler zurücksetzen", en = "/sh reset - reset the session counter" },
     helpDebug       = { de = "/sh debug - internen Zustand in den Chat ausgeben (zur Fehlersuche)", en = "/sh debug - print internal state to chat (for troubleshooting)" },
     helpMove        = { de = "Position verschieben: Esc -> Edit-Modus -> 'Sammelberufe' anwählen und ziehen.", en = "Move: Esc -> Edit Mode -> select 'Professions' and drag." },
-    helpAppearance  = { de = "Aussehen/Layout (Hintergrund, Rahmen, Schriftart, Position, uvm.): Esc -> Edit-Modus -> 'Sammelberufe' -> Dropdowns.", en = "Appearance/Layout (background, border, font, position, etc.): Esc -> Edit Mode -> 'Professions' -> dropdowns." },
+    helpAppearance  = { de = "Aussehen/Layout (Ansicht, Schrift, Position, Größe, Sichtbarkeit): Esc -> Edit-Modus -> Fenster 'Sammelberufe' anklicken.", en = "Appearance/Layout (view, font, position, size, visibility): Esc -> Edit Mode -> click the 'Professions' window." },
 }
+
+local SEM = LibStub("SexyEditMode-1.0")
 
 local function L(key)
     local entry = STRINGS[key]
@@ -246,14 +253,16 @@ local SLOT_ICON = 28         -- Icon in der Ansicht "Als Reihe"
 local FOOTER_H = 38          -- Fußleiste mit Reset-Knopf (nur "Mit Namen")
 local PILL_MIN = 34          -- Mindestbreite des Session-Etiketts
 
--- Kein BackdropTemplate/SetBackdrop verwendet, da dessen Verfügbarkeit je nach
--- Client-Generation unsicher ist. Stattdessen einfache, überall funktionierende
--- Textur-Flächen mit Vertex-Farbe.
-local frame = CreateFrame("Frame", "SexyHarvesterFrame", UIParent)
+
+
+-- Hintergrund und die älteren Rahmen-Stile sind einfache Textur-Flächen mit
+-- Vertex-Farbe. Nur der Quest-Look-Rahmen (Tooltip-Rand wie in SexyQuestHelper) nutzt
+-- BackdropTemplate; fehlt es, bleibt der Rahmen eine flache Linie.
+local frame = CreateFrame("Frame", "SexyHarvesterFrame", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
 frame:SetSize(FRAME_WIDTH, HEADER_HEIGHT + FRAME_PADDING * 2)
 frame:SetPoint("CENTER", UIParent, "CENTER", 300, 0)
--- Beweglichkeit, Klemmen an den Bildschirmrand und das Ziehen selbst übernimmt
--- ab hier die EditModeExpanded-1.0 Library (siehe ADDON_LOADED weiter unten).
+-- Verschieben im Edit Mode, Größe und Sichtbarkeit übernimmt SexyEditMode-1.0
+-- (siehe ADDON_LOADED weiter unten); der Anker ist BOTTOMLEFT.
 
 local background = frame:CreateTexture(nil, "BACKGROUND")
 background:SetAllPoints(frame)
@@ -318,10 +327,43 @@ local function ApplyBackground()
     background:Show()
 end
 
+-- Abstand des Inhalts zum Fensterrand: 3 px beim Tooltip-Rand des Quest-Looks, sonst 2 px.
+-- Titelband und Zeilen richten sich danach (siehe ApplyInset weiter unten).
+local inset = 2
+local ApplyInset
+
+local QUEST_BACKDROP = {
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    edgeSize = 12,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 },
+}
+
 -- Setzt den per borderIndex gewählten Fensterrahmen-Stil (siehe BORDER_STYLES).
 local function ApplyFrameBorder()
     local style = BORDER_STYLES[borderIndex] or BORDER_STYLES[1]
-    if style.id == "none" then
+    local quest = style.id == "quest" and frame.SetBackdrop ~= nil
+    inset = quest and 3 or 2
+
+    if frame.SetBackdrop then
+        if quest then
+            frame:SetBackdrop(QUEST_BACKDROP)
+            frame:SetBackdropBorderColor(style.r, style.g, style.b, style.a)
+        else
+            frame:SetBackdrop(nil)
+        end
+    end
+
+    -- Fläche unter dem runden Tooltip-Rand einrücken, sonst ragen ihre Ecken heraus
+    background:ClearAllPoints()
+    if quest then
+        background:SetPoint("TOPLEFT", frame, "TOPLEFT", 3, -3)
+        background:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -3, 3)
+    else
+        background:SetAllPoints(frame)
+    end
+    if ApplyInset then ApplyInset() end
+
+    if quest or style.id == "none" then
         for _, tex in ipairs(border) do tex:Hide() end
         return
     end
@@ -392,10 +434,16 @@ local fontSize = 11 -- Standardgröße von GameFontNormalSmall/NumberFontNormalS
 
 -- Titelband (Quest-Look) mit Titel links und Badge rechts
 local band = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
-band:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -2)
-band:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
-band:SetHeight(HEADER_HEIGHT - 2)
 band:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+
+-- Band passend zum Rand (inset) setzen; wird bei jedem Rahmenwechsel aufgerufen
+ApplyInset = function()
+    band:ClearAllPoints()
+    band:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -inset)
+    band:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset, -inset)
+    band:SetHeight(HEADER_HEIGHT - inset)
+end
+ApplyInset()
 
 local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 title:SetPoint("LEFT", band, "LEFT", 10, 0)
@@ -449,7 +497,6 @@ local LIST_LAYOUTS = {
     { id = "grouped",    label = L("layoutGrouped"),    texture = "Interface\\Buttons\\Arrow-Down-Up" },
 }
 local listLayoutIndex = 1
-local ITEM_SLOT_WIDTH = 64 -- horizontaler Abstand zwischen Icons im Horizontal-Layout
 
 -- Richtung, in die die Icon-Liste wächst, wenn weitere Rohstoffe dazukommen.
 -- Als flache Liste (nicht mehr abhängig vom aktuellen LIST_LAYOUTS-Modus): eine
@@ -592,10 +639,16 @@ end
 -- keine manuelle Nachjustierung nötig.
 local function ResizeFramePreservingPosition(width, height)
     frame:SetSize(width, height)
-    local db = SexyHarvesterDB.editMode
-    if db then
-        db.x, db.y = frame:GetRect()
-    end
+end
+
+-- Beispiel-Einträge, die das Fenster im Edit Mode zeigt (auch ohne gehaltene Rohstoffe)
+local function PreviewEntries()
+    local list = {
+        { name = L("previewHerb"), count = 24, gained = 6, group = "herb", icon = 134187 },
+        { name = L("previewOre"), count = 15, gained = 3, group = "ore", icon = 134574 },
+        { name = L("previewLeather"), count = 8, gained = 2, group = "leather", icon = 134352 },
+    }
+    return list
 end
 
 -- Gruppenzeile (Beruf) der Ansicht "Mit Namen": Etikett links, Summe rechts
@@ -651,6 +704,10 @@ local function RenderRows()
             }
         end
     end
+    if #entries == 0 and SEM:IsEditing() then
+        entries = PreviewEntries()
+        if not grouped then for _, e in ipairs(entries) do e.group = nil end end
+    end
     table.sort(entries, function(a, b)
         if grouped and a.group ~= b.group then return GROUP_ORDER[a.group] < GROUP_ORDER[b.group] end
         return a.name < b.name
@@ -658,7 +715,7 @@ local function RenderRows()
 
     -- Badge im Band: in dieser Session gesammelte Menge insgesamt
     local totalGained = 0
-    for _, e in ipairs(entries) do totalGained = totalGained + (sessionGained[e.itemID] or 0) end
+    for _, e in ipairs(entries) do totalGained = totalGained + (e.gained or sessionGained[e.itemID] or 0) end
     if not hideTitle and not hideGained and totalGained > 0 then
         SetBadge("+" .. totalGained .. (grouped and (" " .. L("session")) or ""))
     else
@@ -670,7 +727,7 @@ local function RenderRows()
     for i, entry in ipairs(entries) do
         local row = GetRow(i)
         row.itemID = entry.itemID
-        row.icon:SetTexture(GetItemIcon(entry.itemID))
+        row.icon:SetTexture(entry.icon or GetItemIcon(entry.itemID))
         row.count:SetText(entry.count)
         row.count:SetShown(not hideCount)
         row.name:SetText(entry.name)
@@ -678,7 +735,7 @@ local function RenderRows()
         row.bg:SetShown(not horizontal)
         row.divider:SetShown(not horizontal)
 
-        local gained = sessionGained[entry.itemID]
+        local gained = entry.gained or sessionGained[entry.itemID]
         local showGained = (not hideGained) and gained and gained > 0
         row.gained:SetText(showGained and ("+" .. gained) or "")
         row.gained:SetShown(showGained and true or false)
@@ -706,16 +763,18 @@ local function RenderRows()
     local width, height
     if horizontal then
         -- Als Reihe: je Rohstoff ein Fach mit Icon, Anzahl darunter und Session-Etikett
+        -- Fachbreite passt sich dem breitesten Inhalt an (Icon, Anzahl, Session-Etikett)
+        local slotW = math.ceil(math.max(SLOT_ICON, hideCount and 0 or maxCountW, pillW)) + 14
         local slotH = 6 + SLOT_ICON + (hideCount and 0 or 16) + (anyGained and 22 or 0) + 6
         for i = 1, #entries do
             local row = rowPool[i]
             row:ClearAllPoints()
-            row:SetSize(ITEM_SLOT_WIDTH, slotH)
+            row:SetSize(slotW, slotH)
             -- feste, schmale Spalten, damit sich die Mauszeiger-Trefferflächen nicht überlappen
             if growthStyle.id == "left" then
-                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4 - (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
+                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4 - (i - 1) * slotW, -topOffset)
             else
-                row:SetPoint("TOPLEFT", frame, "TOPLEFT", 4 + (i - 1) * ITEM_SLOT_WIDTH, -topOffset)
+                row:SetPoint("TOPLEFT", frame, "TOPLEFT", 4 + (i - 1) * slotW, -topOffset)
             end
             row.icon:SetSize(SLOT_ICON, SLOT_ICON)
             row.icon:ClearAllPoints()
@@ -727,7 +786,7 @@ local function RenderRows()
             PlaceGained(row, "TOP", hideCount and row.icon or row.count, "BOTTOM", 0, -4, pillW)
             row:Show()
         end
-        width = 8 + #entries * ITEM_SLOT_WIDTH
+        width = 8 + #entries * slotW
         height = topOffset + slotH
     elseif not grouped then
         -- Kompakt: Icon mit Anzahl (Position wählbar), Session-Etikett rechts
@@ -741,11 +800,11 @@ local function RenderRows()
             row:ClearAllPoints()
             row:SetHeight(ROW_HEIGHT)
             if up then
-                row:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
-                row:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
+                row:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", inset, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
+                row:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, FRAME_PADDING + (i - 1) * ROW_HEIGHT)
             else
-                row:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -topOffset - (i - 1) * ROW_HEIGHT)
-                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -topOffset - (i - 1) * ROW_HEIGHT)
+                row:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -topOffset - (i - 1) * ROW_HEIGHT)
+                row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset, -topOffset - (i - 1) * ROW_HEIGHT)
             end
             row.icon:SetSize(ICON_SIZE, ICON_SIZE)
             row.icon:ClearAllPoints()
@@ -777,6 +836,10 @@ local function RenderRows()
                 h.pill:SetColorTexture(tone.bg[1], tone.bg[2], tone.bg[3], 1)
                 h.pill:SetWidth(h.label:GetStringWidth() + 18)
                 h.sum:SetText(groupSums[e.group])
+                -- Summe in derselben Spalte wie die Anzahlen der Items darunter (rechtsbündig)
+                h.sum:ClearAllPoints()
+                h.sum:SetPoint("RIGHT", h, "RIGHT", -(hideCount and 8 or countRight), 0)
+                h.sum:SetJustifyH("RIGHT")
                 elements[#elements + 1] = { h, GROUP_HEADER_H }
             end
             local row = rowPool[i]
@@ -800,11 +863,11 @@ local function RenderRows()
             local f, h = el[1], el[2]
             f:ClearAllPoints()
             if up then
-                f:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 2, FOOTER_H + offset)
-                f:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, FOOTER_H + offset)
+                f:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", inset, FOOTER_H + offset)
+                f:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, FOOTER_H + offset)
             else
-                f:SetPoint("TOPLEFT", frame, "TOPLEFT", 2, -(topOffset + offset))
-                f:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -(topOffset + offset))
+                f:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -(topOffset + offset))
+                f:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset, -(topOffset + offset))
             end
             f:Show()
             offset = offset + h
@@ -921,34 +984,8 @@ scanTicker:SetScript("OnUpdate", function(self, elapsed)
 end)
 
 ------------------------------------------------------------------------------
--- Darstellungs-Dropdowns im Edit-Mode-Dialog
--- LibUIDropDownMenu (Fork "LibUIDropDownMenuQuestie-4.0", siehe Libs) statt
--- Blizzards eigenem UIDropDownMenuTemplate: Letzteres lässt sich laut
--- EditModeExpanded-Autor nicht taint-frei innerhalb des Edit-Mode-Dialogs
--- verwenden, lib:RegisterDropdown verlangt deshalb eine externe Dropdown-Lib.
+-- Einstellungen im Edit Mode (SexyEditMode-1.0: eigener Dialog mit Abschnitten)
 ------------------------------------------------------------------------------
-
--- Je eine Font-Vorschau pro FONTS-Eintrag, damit die Auswahlliste die Schriftart
--- direkt im echten Look zeigt, statt nur den Namen in der Standardschrift.
-local FONT_OBJECTS = {}
-for i, font in ipairs(FONTS) do
-    local fontObject = CreateFont("SexyHarvesterFontPreview" .. i)
-    fontObject:SetFont(font.path, 12, "")
-    fontObject:SetTextColor(1, 1, 1)
-    FONT_OBJECTS[i] = fontObject
-end
-
-local function SetBackgroundIndex(index)
-    backgroundIndex = index
-    SexyHarvesterDB.style.background = index
-    ApplyBackground()
-end
-
-local function SetBorderIndex(index)
-    borderIndex = index
-    SexyHarvesterDB.style.border = index
-    ApplyFrameBorder()
-end
 
 local function SetIconBorderIndex(index)
     iconBorderIndex = index
@@ -965,6 +1002,7 @@ local function SetFontIndex(index)
     for _, row in ipairs(rowPool) do
         ApplyFont(row)
     end
+    RenderRows()
 end
 
 local function SetFontSize(size)
@@ -995,94 +1033,47 @@ local function SetGrowthDirectionIndex(index)
     RenderRows()
 end
 
--- Setzt Farbfeld- oder Bild-Vorschau eines Dropdown-Eintrags: "texture" zeigt
--- die echte Textur/das Icon (Hintergrund-Texturen, Pfeil-Icons für Position/
--- Layout/Wachstumsrichtung), sonst - falls vorhanden - ein Farbfeld aus r/g/b.
-local function ApplyDropdownEntryPreview(info, style)
-    if style.texture then
-        info.icon = style.texture
-    elseif style.r then
-        info.colorSwatch = true
-        info.swatchFunc = function() end
-        info.r, info.g, info.b = style.r, style.g, style.b
-    end
+-- Optionen einer Auswahlliste aus einer Stil-Tabelle ({ label = ... }); der Wert ist der Index
+local function StyleOptions(styles)
+    local options = {}
+    for i, style in ipairs(styles) do options[i] = { value = i, label = style.label } end
+    return options
 end
 
--- lib:RegisterDropdown hat - anders als RegisterCustomCheckbox/RegisterSlider/
--- RegisterCustomButton - keinen "name"-Parameter und dementsprechend keine
--- eingebaute Zeilenbeschriftung im Edit-Mode-Dialog (SetupSetting ist dort ein
--- reines no-op). Fügt daher wie SexyInterrupter ein eigenes Label links neben
--- dem Dropdown ein, in derselben Schriftart (GameFontHighlightMedium) wie
--- Blizzards eigene Checkbox-/Slider-Zeilen.
-local function AddEditModeDropdownLabel(dropdown, label)
-    local layoutFrame = dropdown:GetParent()
-
-    local labelText = layoutFrame:CreateFontString(nil, nil, "GameFontHighlightMedium")
-    labelText:SetPoint("LEFT", layoutFrame, "LEFT", 0, 0)
-    labelText:SetJustifyH("LEFT")
-    labelText:SetWidth(100)
-    labelText:SetText(label)
-
-    dropdown:ClearAllPoints()
-    dropdown:SetPoint("LEFT", labelText, "RIGHT", 5, -2)
+-- Titel, Menge und Session-Zähler lassen sich einzeln ausblenden (gespeichert in style)
+local function SetHidden(key, value)
+    value = value and true or false
+    if key == "hideTitle" then hideTitle = value
+    elseif key == "hideCount" then hideCount = value
+    else hideGained = value end
+    SexyHarvesterDB.style[key] = value
+    RenderRows()
 end
 
--- Registriert ein Dropdown für eine Options-Liste (BACKGROUND_STYLES/BORDER_STYLES/
--- EDGE_STYLES/COUNT_POSITIONS/LIST_LAYOUTS/GROWTH_STYLES) im Edit-Mode-Dialog,
--- inkl. Label, Farbfeld- oder Bild-Vorschau und Häkchen bei der aktuell
--- gewählten Option.
-local function RegisterEditModeStyleDropdown(lib, LibDD, frame, internalName, label, styles, getIndex, setIndex)
-    local dropdown = lib:RegisterDropdown(frame, LibDD, internalName)
-    AddEditModeDropdownLabel(dropdown, label)
+local function BuildSettings()
+    return {
+        { type = "header", name = L("sectionView"), id = "view" },
+        { type = "select", name = L("listLayout"), options = StyleOptions(LIST_LAYOUTS),
+            get = function() return listLayoutIndex end, set = SetListLayoutIndex },
+        { type = "select", name = L("growthDirection"), options = StyleOptions(GROWTH_STYLES),
+            get = function() return growthDirectionIndex end, set = SetGrowthDirectionIndex },
+        { type = "select", name = L("countPosition"), options = StyleOptions(COUNT_POSITIONS),
+            get = function() return countPositionIndex end, set = SetCountPositionIndex },
+        { type = "check", name = L("hideTitle"), get = function() return hideTitle end,
+            set = function(v) SetHidden("hideTitle", v) end },
+        { type = "check", name = L("hideCount"), get = function() return hideCount end,
+            set = function(v) SetHidden("hideCount", v) end },
+        { type = "check", name = L("hideGained"), get = function() return hideGained end,
+            set = function(v) SetHidden("hideGained", v) end },
 
-    local function RefreshText()
-        LibDD:UIDropDownMenu_SetText(dropdown, styles[getIndex()].label)
-    end
-
-    LibDD:UIDropDownMenu_Initialize(dropdown, function(self, level)
-        for i, style in ipairs(styles) do
-            local info = LibDD:UIDropDownMenu_CreateInfo()
-            info.text = style.label
-            info.checked = (i == getIndex())
-            ApplyDropdownEntryPreview(info, style)
-            info.func = function()
-                setIndex(i)
-                RefreshText()
-            end
-            LibDD:UIDropDownMenu_AddButton(info, level)
-        end
-    end)
-
-    LibDD:UIDropDownMenu_SetWidth(dropdown, 150)
-    RefreshText()
-end
-
--- Wie oben, aber für die Schriftarten-Liste (FONTS) mit Live-Vorschau je Eintrag
--- über FONT_OBJECTS.
-local function RegisterEditModeFontDropdown(lib, LibDD, frame, internalName, label)
-    local dropdown = lib:RegisterDropdown(frame, LibDD, internalName)
-    AddEditModeDropdownLabel(dropdown, label)
-
-    local function RefreshText()
-        LibDD:UIDropDownMenu_SetText(dropdown, FONTS[fontIndex].label)
-    end
-
-    LibDD:UIDropDownMenu_Initialize(dropdown, function(self, level)
-        for i, font in ipairs(FONTS) do
-            local info = LibDD:UIDropDownMenu_CreateInfo()
-            info.text = font.label
-            info.fontObject = FONT_OBJECTS[i]
-            info.checked = (i == fontIndex)
-            info.func = function()
-                SetFontIndex(i)
-                RefreshText()
-            end
-            LibDD:UIDropDownMenu_AddButton(info, level)
-        end
-    end)
-
-    LibDD:UIDropDownMenu_SetWidth(dropdown, 150)
-    RefreshText()
+        { type = "header", name = L("sectionLook"), id = "look", collapsed = true },
+        { type = "select", name = L("iconBorder"), options = StyleOptions(EDGE_STYLES),
+            get = function() return iconBorderIndex end, set = SetIconBorderIndex },
+        { type = "select", name = L("font"), options = StyleOptions(FONTS),
+            get = function() return fontIndex end, set = SetFontIndex },
+        { type = "slider", name = L("fontSize"), min = 8, max = 24, step = 1,
+            get = function() return fontSize end, set = SetFontSize },
+    }
 end
 
 local eventFrame = CreateFrame("Frame")
@@ -1096,34 +1087,23 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         local loadedAddon = ...
         if loadedAddon == ADDON_NAME then
             SexyHarvesterDB.editMode = SexyHarvesterDB.editMode or {}
-            local lib = LibStub("EditModeExpanded-1.0")
-            -- Registriert unser Fenster in Blizzards Edit Mode (Esc -> Edit-Modus):
-            -- Position/Klemmen wird von der Library verwaltet und in
-            -- SexyHarvesterDB.editMode persistiert. Ankerpunkt BOTTOMLEFT: die
-            -- Umrechnungsformel dafür in EditModeExpanded-1.0.lua (getOffsetXY)
-            -- ist die einzige, die OHNE die aktuelle Fensterbreite/-höhe auskommt.
-            -- Alle anderen Ankerpunkte (u. a. TOPLEFT, CENTER) beziehen die Größe
-            -- mit ein - da sich unsere Fenstergröße laufend ändert (Itemanzahl,
-            -- Schriftgröße, Layout) und beim Registrieren/beim "Frame Size"-Regler
-            -- (RegisterResizable, läuft bei JEDEM Reload) noch die winzige
-            -- Platzhaltergröße gilt statt der späteren Inhaltsgröße, sprang das
-            -- Fenster damit bei jedem Reload an eine andere/falsche Position.
-            lib:RegisterFrame(frame, L("title"), SexyHarvesterDB.editMode, UIParent, "BOTTOMLEFT", true)
-
-            -- Hintergrund/Rahmen/Icon-Rahmen/Schriftart/Position/Layout/Wachstumsrichtung:
-            -- eigener Zustand geladen aus SexyHarvesterDB.style, Auswahl erfolgt über
-            -- echte Dropdowns weiter unten. Vor der Frame-Size/Schriftgröße-
-            -- Registrierung geladen, da deren Anfangswert (fontSize) davon abhängt.
             SexyHarvesterDB.style = SexyHarvesterDB.style or {}
-            -- Ohne gespeicherte Wahl gilt der Quest-Look (Fläche, Goldrand, Marcellus + Inter)
-            backgroundIndex = SexyHarvesterDB.style.background or DEFAULT_BACKGROUND
-            borderIndex = SexyHarvesterDB.style.border or DEFAULT_BORDER
-            iconBorderIndex = SexyHarvesterDB.style.iconBorder or DEFAULT_ICON_BORDER
-            fontIndex = SexyHarvesterDB.style.font or DEFAULT_FONT
-            fontSize = SexyHarvesterDB.style.fontSize or 11
-            countPositionIndex = SexyHarvesterDB.style.countPosition or 1
-            listLayoutIndex = SexyHarvesterDB.style.listLayout or 1
-            growthDirectionIndex = SexyHarvesterDB.style.growthDirection or 1
+            local style = SexyHarvesterDB.style
+
+            -- Hintergrund und Rahmen sind fest (Quest-Look) und nicht einstellbar; alte gespeicherte
+            -- Wahlen werden nicht mehr benutzt
+            backgroundIndex = DEFAULT_BACKGROUND
+            borderIndex = DEFAULT_BORDER
+            style.background, style.border = nil, nil
+            iconBorderIndex = style.iconBorder or DEFAULT_ICON_BORDER
+            fontIndex = style.font or DEFAULT_FONT
+            fontSize = style.fontSize or 11
+            countPositionIndex = style.countPosition or 1
+            listLayoutIndex = style.listLayout or 1
+            growthDirectionIndex = style.growthDirection or 1
+            hideTitle = style.hideTitle and true or false
+            hideCount = style.hideCount and true or false
+            hideGained = style.hideGained and true or false
             ApplyBackground()
             ApplyFrameBorder()
             ApplyFont()
@@ -1133,51 +1113,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 ApplyCountPosition(row)
             end
 
-            -- Größe: Skalierungs-Regler (50%-200%) im Edit-Mode-Einstellungsdialog
-            lib:RegisterResizable(frame, 50, 200, 10)
-
-            -- Schriftgröße-Regler direkt unter "Frame Size". lib:RegisterSlider zeigt
-            -- beim ersten Öffnen des Dialogs standardmäßig 100 an, falls noch kein
-            -- Wert in der Library-eigenen DB gespeichert ist - deshalb hier vorab mit
-            -- unserem tatsächlichen fontSize-Wert seeden (siehe
-            -- ENUM_EDITMODEACTIONBARSETTING_SLIDER = 18 in EditModeExpanded-1.0.lua).
-            local EME_SETTING_TYPE_SLIDER = 18
-            SexyHarvesterDB.editMode.settings = SexyHarvesterDB.editMode.settings or {}
-            SexyHarvesterDB.editMode.settings[EME_SETTING_TYPE_SLIDER] = SexyHarvesterDB.editMode.settings[EME_SETTING_TYPE_SLIDER] or {}
-            SexyHarvesterDB.editMode.settings[EME_SETTING_TYPE_SLIDER]["fontSize"] = fontSize
-            lib:RegisterSlider(frame, L("fontSize"), "fontSize", SetFontSize, 8, 24, 1)
-
-            -- Zusätzliche Checkboxen im selben Dialog: Titel und Mengenanzeige
-            -- lassen sich einzeln ausblenden, sind aber standardmäßig an.
-            lib:RegisterCustomCheckbox(frame, L("hideTitle"),
-                function() hideTitle = true; RenderRows() end,
-                function() hideTitle = false; RenderRows() end,
-                "hideTitle")
-            lib:RegisterCustomCheckbox(frame, L("hideCount"),
-                function() hideCount = true; RenderRows() end,
-                function() hideCount = false; RenderRows() end,
-                "hideCount")
-            lib:RegisterCustomCheckbox(frame, L("hideGained"),
-                function() hideGained = true; RenderRows() end,
-                function() hideGained = false; RenderRows() end,
-                "hideGained")
-
-            -- Echte Dropdowns mit Vorschau im Edit-Mode-Dialog (siehe LibUIDropDownMenu
-            -- oben, gleiches Vorgehen wie bei SexyInterrupter).
-            local LibDD = LibStub("LibUIDropDownMenuQuestie-4.0")
-            RegisterEditModeStyleDropdown(lib, LibDD, frame, "background", L("background"), BACKGROUND_STYLES,
-                function() return backgroundIndex end, SetBackgroundIndex)
-            RegisterEditModeStyleDropdown(lib, LibDD, frame, "border", L("border"), BORDER_STYLES,
-                function() return borderIndex end, SetBorderIndex)
-            RegisterEditModeStyleDropdown(lib, LibDD, frame, "iconBorder", L("iconBorder"), EDGE_STYLES,
-                function() return iconBorderIndex end, SetIconBorderIndex)
-            RegisterEditModeFontDropdown(lib, LibDD, frame, "font", L("font"))
-            RegisterEditModeStyleDropdown(lib, LibDD, frame, "countPosition", L("countPosition"), COUNT_POSITIONS,
-                function() return countPositionIndex end, SetCountPositionIndex)
-            RegisterEditModeStyleDropdown(lib, LibDD, frame, "listLayout", L("listLayout"), LIST_LAYOUTS,
-                function() return listLayoutIndex end, SetListLayoutIndex)
-            RegisterEditModeStyleDropdown(lib, LibDD, frame, "growthDirection", L("growthDirection"), GROWTH_STYLES,
-                function() return growthDirectionIndex end, SetGrowthDirectionIndex)
+            -- Fenster im Edit Mode verschiebbar machen; Position, Größe und Sichtbarkeit speichert
+            -- die Bibliothek in SexyHarvesterDB.editMode. Im Edit Mode zeigt das Fenster Beispiele.
+            SEM:Register(frame, {
+                name = "SexyHarvester: " .. L("title"),
+                db = SexyHarvesterDB.editMode,
+                settings = BuildSettings(),
+                onEditMode = function() RenderRows() end,
+            })
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         RequestScan()

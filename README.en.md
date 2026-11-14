@@ -35,26 +35,27 @@ The **Icon layout** option switches between them:
 - 📚 **With names and profession groups:** group rows for Herbs, Ore, Leather and Cloth with a total, then icon, name, count and session label, plus the "Reset session" button.
 
 ### 🎨 Look
-Dark brown surface, gold frame, title band with a badge, card rows with dividers and the `+N` as a green label, matching **SexyLoot** and **SexyQuestHelper**. Fonts: **Marcellus** for the title, **Inter** for text. Background, border and font can still be changed.
+Dark brown surface, gold frame, title band with a badge, card rows with dividers and the `+N` as a green label, matching **SexyLoot** and **SexyQuestHelper**. Fonts: **Marcellus** for the title, **Inter** for text. Background and window frame are fixed, the font can still be changed.
 
 ---
 
 ## 🛠️ Everything adjustable in Edit Mode
 
-`Esc` → **Edit Mode** → select **"Professions"**. SexyHarvester uses the [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) library for this.
+`Esc` → **Edit Mode** → select **"Professions"**. The dialog has collapsible sections ("View", "Look", "Position and size", "Visibility") in the look of the other Sexy addons. In Edit Mode the window shows sample materials. The dialog comes from the own **SexyEditMode** library.
 
 | Option | Effect |
 | --- | --- |
 | 📍 Position | Drag and drop, can be clamped to the screen edge |
 | 🔍 Size | 50 to 200 % |
+| 👁️ Visibility | Hide, hide in combat, or show only on mouseover |
 | 🧩 Icon layout | Compact, as row, or with names and profession groups |
 | ⬇️ Growth direction | Down, up, right or left |
 | 🔢 Count position | On the icon (center, four corners) or outside it (right, left, above, below), in the Compact view |
 | 👁️ Hide | Title, count or session counter individually |
-| 🖼️ Background, border, icon border | Lists, the default is the quest look |
+| 🖼️ Icon border | List for the border around the icons |
 | 🔤 Font and size | Marcellus + Inter or a game font, size 8 to 24 |
 
-If you already saved your own background, border or font style, it is kept. The new quest look entries sit at the end of the lists.
+Background and window frame are fixed (quest look) and cannot be changed.
 
 ---
 
@@ -97,8 +98,7 @@ Please report bugs and requests as an [issue on GitHub](https://github.com/apnot
 
 ## 🙏 Credits
 
-- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) by **Teelo** (library `EditModeExpanded-1.0`, embedded in `Libs/`, author credited as its license requires)
-- **LibStub** (public domain) and **LibUIDropDownMenu** (fork from Questie), embedded in `Libs/`
+- **LibStub** (public domain) and the own **SexyEditMode** library, embedded in `Libs/`
 - Fonts [Marcellus](https://fonts.google.com/specimen/Marcellus) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
 
 ---

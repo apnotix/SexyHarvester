@@ -35,26 +35,27 @@ Die Option **Icon-Layout** schaltet um:
 - 📚 **Mit Namen und Berufsgruppen:** Gruppenzeilen für Kräuter, Erz, Leder und Stoff mit Summe, darunter Icon, Name, Anzahl und Session-Etikett, dazu der Knopf „Session zurücksetzen“.
 
 ### 🎨 Look
-Dunkelbraune Fläche, Goldrand, Titelband mit Badge, Karten mit Trennlinien und das `+N` als grünes Etikett, passend zu **SexyLoot** und **SexyQuestHelper**. Schrift: **Marcellus** für den Titel, **Inter** für den Text. Hintergrund, Rahmen und Schrift lassen sich weiter wechseln.
+Dunkelbraune Fläche, Goldrand, Titelband mit Badge, Karten mit Trennlinien und das `+N` als grünes Etikett, passend zu **SexyLoot** und **SexyQuestHelper**. Schrift: **Marcellus** für den Titel, **Inter** für den Text. Hintergrund und Fensterrahmen sind fest, die Schrift lässt sich wechseln.
 
 ---
 
 ## 🛠️ Alles im Edit Mode einstellbar
 
-`Esc` → **Edit Mode** → **„Sammelberufe“** anwählen. SexyHarvester nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
+`Esc` → **Edit Mode** → **„Sammelberufe“** anwählen. Der Dialog hat einklappbare Abschnitte („Ansicht“, „Aussehen“, „Position und Größe“, „Sichtbarkeit“) im Look der anderen Sexy-Addons. Im Edit Mode zeigt das Fenster Beispiel-Rohstoffe. Der Dialog stammt aus der eigenen Bibliothek **SexyEditMode**.
 
 | Option | Wirkung |
 | --- | --- |
 | 📍 Position | Per Drag & Drop, am Bildschirmrand klemmbar |
 | 🔍 Größe | 50 bis 200 % |
+| 👁️ Sichtbarkeit | Ausblenden, im Kampf ausblenden oder nur bei Mouseover zeigen |
 | 🧩 Icon-Layout | Kompakt, als Reihe oder mit Namen und Berufsgruppen |
 | ⬇️ Wachstumsrichtung | Nach unten, oben, rechts oder links |
 | 🔢 Anzahl-Position | Auf dem Icon (Mitte, vier Ecken) oder außerhalb (rechts, links, oben, unten), in der Ansicht „Kompakt“ |
 | 👁️ Ausblenden | Titel, Menge oder Session-Zähler einzeln aus |
-| 🖼️ Hintergrund, Rahmen, Icon-Rahmen | Auswahllisten, Standard ist der Quest-Look |
+| 🖼️ Icon-Rahmen | Auswahlliste für den Rahmen um die Icons |
 | 🔤 Schriftart und Größe | Marcellus + Inter oder eine Spielschrift, Größe 8 bis 24 |
 
-Wer schon einen eigenen Stil für Hintergrund, Rahmen oder Schrift gespeichert hat, behält ihn. Die neuen Quest-Look-Einträge stehen am Ende der Listen.
+Hintergrund und Fensterrahmen sind fest (Quest-Look) und lassen sich nicht einstellen.
 
 ---
 
@@ -97,8 +98,7 @@ Fehler und Wünsche bitte als [Issue auf GitHub](https://github.com/apnotix/Sexy
 
 ## 🙏 Danksagung
 
-- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) von **Teelo** (Bibliothek `EditModeExpanded-1.0`, eingebettet unter `Libs/`, Autor wird wie in der Lizenz gefordert genannt)
-- **LibStub** (gemeinfrei) und **LibUIDropDownMenu** (Fork aus Questie), eingebettet unter `Libs/`
+- **LibStub** (gemeinfrei) und die eigene Bibliothek **SexyEditMode**, eingebettet unter `Libs/`
 - Schriften [Marcellus](https://fonts.google.com/specimen/Marcellus) und [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
 
 ---

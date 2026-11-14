@@ -16,19 +16,20 @@ Works on **World of Warcraft: Forever** and **Retail**. Styled like the rest of 
   - **With names and profession groups** - group rows for Herbs, Ore, Leather and Cloth with a total, then icon, name, count and session label, plus a **Reset session** button.
 - **Title band with a badge** - the badge shows everything you gathered this session.
 - **Item tooltips** - hover an icon to see the normal item tooltip.
-- **Edit Mode** - move and scale the window with Blizzard's own Edit Mode. All options live there.
+- **Edit Mode** - move and scale the window in Edit Mode; the settings dialog has collapsible sections and shows sample materials.
 - **English and German** localization.
 
 ## Settings (Esc > Edit Mode > select "Professions")
 
 | Option | Effect |
 |---|---|
-| Position, clamp to screen, size (50 - 200 %) | Placement and scale of the window |
+| Position, size (50 - 200 %) | Placement and scale of the window |
+| Visibility | Hide, hide in combat, or show only on mouseover |
 | Icon layout | Compact, as row, or with names and profession groups |
 | Growth direction | Down, up, right or left |
 | Count position | On the icon (center and four corners) or outside it (right, left, above, below), in the compact view |
 | Hide title / count / session counter | Turn single parts off |
-| Background, border, icon border | Dark brown quest look (default), plus the older black, gray, parchment, tooltip and gold styles |
+| Icon border | Border around the icons (background and window frame are fixed: dark brown quest look) |
 | Font and font size | Marcellus + Inter (default) or one of the game fonts, size 8 - 24 |
 
 ## Slash commands
@@ -51,6 +52,5 @@ Long form: `/sexyharvester`
 
 ## Credits
 
-- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) by Teelo (embedded)
-- LibStub (public domain) and LibUIDropDownMenu (embedded)
+- LibStub (public domain) and the own SexyEditMode library (embedded)
 - Fonts: Marcellus and Inter (SIL Open Font License 1.1)

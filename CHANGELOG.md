@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3
+
+- Ansicht "Mit Namen": Die Summe je Berufsgruppe steht jetzt in derselben Spalte wie die Anzahlen der Items darunter.
+- Ansicht "Als Reihe": Die Fächer sind nur noch so breit wie ihr Inhalt (Icon, Anzahl, Session-Etikett), die Icons sitzen enger beieinander.
+- Neuer Edit-Mode-Dialog im Look der Sexy-Addons mit einklappbaren Abschnitten (Ansicht, Aussehen, Position und Größe, Sichtbarkeit) aus der eigenen Bibliothek SexyEditMode. Im Edit Mode zeigt das Fenster Beispiel-Rohstoffe. Neu: im Kampf ausblenden und nur bei Mouseover zeigen. EditModeExpanded und LibUIDropDownMenu entfallen.
+- Der Quest-Look-Rahmen ist jetzt derselbe Tooltip-Rand wie bei SexyQuestHelper (abgerundete Ecken, gold gefärbt) statt einer flachen Linie. Titelband und Zeilen sitzen entsprechend weiter innen. Die älteren Rahmen-Stile bleiben unverändert.
+- Hintergrund und Fensterrahmen sind fest (Quest-Look) und lassen sich nicht mehr einstellen; die Auswahllisten "Hintergrund" und "Rahmen" entfallen, gespeicherte Wahlen werden nicht mehr benutzt. "Icon-Rahmen" bleibt wählbar.
+
 ## 1.0.2
 
 - Läuft jetzt auch auf Retail: Die `.toc` führt neben Forever (16001) auch Retail (120100). Dadurch heißt das Release-Paket nicht mehr "...-forever.zip".
