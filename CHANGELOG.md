@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Positionen: Beim Umstieg auf den neuen Edit-Mode-Dialog wurde die alte Position mancher Spieler nicht übernommen (Fenster stand wieder an der Startposition). Die Übernahme prüft jetzt später erneut, nimmt notfalls das Layout, in dem das Fenster verschoben wurde, und löscht die alten Daten nicht mehr. Bereits zurückgesetzte Fenster müssen einmal neu platziert werden
+
 ## 1.0.3
 
 - Ansicht "Mit Namen": Die Summe je Berufsgruppe steht jetzt in derselben Spalte wie die Anzahlen der Items darunter.
