@@ -1145,6 +1145,8 @@ SlashCmdList["SEXYHARVESTER"] = function(msg)
     msg = string.lower(strtrim(msg or ""))
     if msg == "reset" then
         ResetSession()
+    elseif msg == "minimap" then
+        SexyHarvester_ToggleMinimapButton()
     elseif msg == "debug" then
         print("|cff1eff00SexyHarvester|r Debug: Taschen-Rohdaten")
         local numBags = math.max(NUM_BAG_SLOTS or 4, REAGENT_BAG_INDEX)

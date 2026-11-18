@@ -2,6 +2,7 @@
 
 ## 1.0.4
 
+- Neuer Minimap-Knopf: Linksklick öffnet bzw. schließt den Edit Mode. Ausblenden mit `/sh minimap`.
 - Positionen: Beim Umstieg auf den neuen Edit-Mode-Dialog wurde die alte Position mancher Spieler nicht übernommen (Fenster stand wieder an der Startposition). Die Übernahme prüft jetzt später erneut, nimmt notfalls das Layout, in dem das Fenster verschoben wurde, und löscht die alten Daten nicht mehr. Bereits zurückgesetzte Fenster müssen einmal neu platziert werden
 
 ## 1.0.3
