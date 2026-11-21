@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.6
+
+- SexyEditMode ist jetzt eine Pflichtabhängigkeit (CurseForge installiert es automatisch).
+- Andocken: Das Fenster lässt sich an ein anderes Fenster andocken (auch anderer Sexy-Addons), mit Seite und Ausrichtung (mit SexyEditMode).
+- Minimap-Knopf, Rechtsklick: Edit Mode nur für die Fenster von SexyHarvester (mit SexyEditMode).
+- Minimap-Knopf: Linksklick öffnet das Einstellungsfenster (SexyEditMode) beim Bereich von SexyHarvester, Rechtsklick den Edit Mode.
+- Icon-Layout: Die drei Bezeichner sind kurz (Kompakt, Reihe, Gruppiert), damit sie im Einstellungsfenster nebeneinander passen.
+- Meldet sich beim neuen Addon SexyEditMode an: Ist es installiert, erscheint das Fenster auch im gemeinsamen Einstellungsfenster (/sem). Ohne das Addon ändert sich nichts.
+- Schriftauswahl: Jede Schrift in der Liste wird in ihrer eigenen Schrift angezeigt, ebenso die aktuelle Auswahl.
+
 ## 1.0.4
 
 - Neuer Minimap-Knopf: Linksklick öffnet bzw. schließt den Edit Mode. Ausblenden mit `/sh minimap`.

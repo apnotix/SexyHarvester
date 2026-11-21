@@ -9,6 +9,7 @@
 ## IconTexture: Interface\AddOns\SexyHarvester\icon.tga
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
+## Dependencies: SexyEditMode
 ## SavedVariables: SexyHarvesterDB
 
 Libs\LibStub.lua

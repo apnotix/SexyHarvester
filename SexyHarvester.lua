@@ -55,9 +55,9 @@ local STRINGS = {
     posOutsideTop   = { de = "Außerhalb oben",             en = "Outside Top" },
     posOutsideBottom= { de = "Außerhalb unten",            en = "Outside Bottom" },
 
-    layoutVertical  = { de = "Kompakt (untereinander)",    en = "Compact (stacked)" },
-    layoutHorizontal= { de = "Als Reihe (nebeneinander)",  en = "As row (side by side)" },
-    layoutGrouped   = { de = "Mit Namen und Berufsgruppen", en = "With names and profession groups" },
+    layoutVertical  = { de = "Kompakt",                     en = "Compact" },
+    layoutHorizontal= { de = "Reihe",                       en = "Row" },
+    layoutGrouped   = { de = "Gruppiert",                  en = "Grouped" },
 
     bgQuest         = { de = "Quest-Look (dunkelbraun)",   en = "Quest look (dark brown)" },
     edgeQuest       = { de = "Quest-Look (Gold)",          en = "Quest look (gold)" },
@@ -704,7 +704,7 @@ local function RenderRows()
             }
         end
     end
-    if #entries == 0 and SEM:IsEditing() then
+    if #entries == 0 and SEM:IsEditing("SexyHarvester") then
         entries = PreviewEntries()
         if not grouped then for _, e in ipairs(entries) do e.group = nil end end
     end
@@ -1034,9 +1034,10 @@ local function SetGrowthDirectionIndex(index)
 end
 
 -- Optionen einer Auswahlliste aus einer Stil-Tabelle ({ label = ... }); der Wert ist der Index
-local function StyleOptions(styles)
+-- withFont: jeder Eintrag wird in seiner eigenen Schrift gezeichnet (Schriftauswahl)
+local function StyleOptions(styles, withFont)
     local options = {}
-    for i, style in ipairs(styles) do options[i] = { value = i, label = style.label } end
+    for i, style in ipairs(styles) do options[i] = { value = i, label = style.label, font = withFont and style.path or nil } end
     return options
 end
 
@@ -1069,7 +1070,7 @@ local function BuildSettings()
         { type = "header", name = L("sectionLook"), id = "look", collapsed = true },
         { type = "select", name = L("iconBorder"), options = StyleOptions(EDGE_STYLES),
             get = function() return iconBorderIndex end, set = SetIconBorderIndex },
-        { type = "select", name = L("font"), options = StyleOptions(FONTS),
+        { type = "select", name = L("font"), options = StyleOptions(FONTS, true),
             get = function() return fontIndex end, set = SetFontIndex },
         { type = "slider", name = L("fontSize"), min = 8, max = 24, step = 1,
             get = function() return fontSize end, set = SetFontSize },
@@ -1115,8 +1116,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
             -- Fenster im Edit Mode verschiebbar machen; Position, Größe und Sichtbarkeit speichert
             -- die Bibliothek in SexyHarvesterDB.editMode. Im Edit Mode zeigt das Fenster Beispiele.
+            if SEM.RegisterAddon then SEM:RegisterAddon("SexyHarvester", { title = "SexyHarvester" }) end
             SEM:Register(frame, {
                 name = "SexyHarvester: " .. L("title"),
+                addon = "SexyHarvester",
+                description = (GetLocale() == "deDE" and "Sammelberuf-Rohstoffe im Inventar mit Zähler für diese Sitzung." or "Gathering materials in your bags with a counter for this session."),
                 db = SexyHarvesterDB.editMode,
                 settings = BuildSettings(),
                 onEditMode = function() RenderRows() end,
