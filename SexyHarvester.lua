@@ -71,7 +71,16 @@ local STRINGS = {
     session         = { de = "Session",                    en = "Session" },
     resetButton     = { de = "Session zurücksetzen",       en = "Reset session" },
     sectionView     = { de = "Anzeige",                    en = "Display" },
-    sectionLook     = { de = "Darstellung",                en = "Appearance" },
+    sectionLook     = { de = "Aussehen",                   en = "Look" },
+    sectionText     = { de = "Schrift",                    en = "Text" },
+    sectionSize     = { de = "Größe und Fläche",           en = "Size and surface" },
+    iconSize        = { de = "Icon-Größe",                 en = "Icon Size" },
+    rowHeight       = { de = "Zeilenhöhe",                 en = "Row Height" },
+    windowOpacity   = { de = "Deckkraft des Fensters",     en = "Window Opacity" },
+    rowCards        = { de = "Zeilen als Karten",          en = "Rows as Cards" },
+    showTotal       = { de = "Summe im Titel zeigen",      en = "Show Total in Title" },
+    groupSums       = { de = "Summen der Gruppen zeigen",  en = "Show Group Totals" },
+    showReset       = { de = "Reset-Knopf zeigen",         en = "Show Reset Button" },
     previewHerb     = { de = "Friedensblume",              en = "Peacebloom" },
     previewOre      = { de = "Kupfererz",                  en = "Copper Ore" },
     previewLeather  = { de = "Leichtes Leder",             en = "Light Leather" },
@@ -234,6 +243,7 @@ local initialized = false
 local hideTitle = false
 local hideCount = false
 local hideGained = false
+local opt = {}   -- weitere Aussehen-Optionen (aus style geladen, siehe ADDON_LOADED): iconSize, rowHeight, opacity, cards, total, sums, reset
 local backgroundIndex = 1
 local borderIndex = 1
 local iconBorderIndex = 1
@@ -250,7 +260,7 @@ local HEADER_HEIGHT = 30     -- Rahmen oben plus Titelband
 local GROUP_ROW_H = 28       -- Item-Zeile mit Namen
 local GROUP_HEADER_H = 22    -- Gruppenzeile (Beruf)
 local SLOT_ICON = 28         -- Icon in der Ansicht "Als Reihe"
-local FOOTER_H = 38          -- Fußleiste mit Reset-Knopf (nur "Mit Namen")
+local FOOTER_H = 46          -- Fußleiste mit Reset-Knopf (nur "Mit Namen")
 local PILL_MIN = 34          -- Mindestbreite des Session-Etiketts
 
 
@@ -320,7 +330,7 @@ local function ApplyBackground()
     end
     background:SetTexture(style.texture or "Interface\\Buttons\\WHITE8x8")
     if style.r then
-        background:SetVertexColor(style.r, style.g, style.b, style.a or 1)
+        background:SetVertexColor(style.r, style.g, style.b, opt.opacity or style.a or 1)
     else
         background:SetVertexColor(1, 1, 1, style.a or 1)
     end
@@ -704,6 +714,7 @@ local function RenderRows()
             }
         end
     end
+    -- im Edit Mode die Beispielzeilen, wenn du gerade nichts hältst
     if #entries == 0 and SEM:IsEditing("SexyHarvester") then
         entries = PreviewEntries()
         if not grouped then for _, e in ipairs(entries) do e.group = nil end end
@@ -716,7 +727,7 @@ local function RenderRows()
     -- Badge im Band: in dieser Session gesammelte Menge insgesamt
     local totalGained = 0
     for _, e in ipairs(entries) do totalGained = totalGained + (e.gained or sessionGained[e.itemID] or 0) end
-    if not hideTitle and not hideGained and totalGained > 0 then
+    if not hideTitle and not hideGained and opt.total ~= false and totalGained > 0 then
         SetBadge("+" .. totalGained .. (grouped and (" " .. L("session")) or ""))
     else
         SetBadge("")
@@ -732,8 +743,8 @@ local function RenderRows()
         row.count:SetShown(not hideCount)
         row.name:SetText(entry.name)
         row.name:SetShown(grouped)
-        row.bg:SetShown(not horizontal)
-        row.divider:SetShown(not horizontal)
+        row.bg:SetShown(not horizontal and opt.cards ~= false)
+        row.divider:SetShown(not horizontal and opt.cards ~= false)
 
         local gained = entry.gained or sessionGained[entry.itemID]
         local showGained = (not hideGained) and gained and gained > 0
@@ -753,7 +764,8 @@ local function RenderRows()
     for i = #entries + 1, #rowPool do
         rowPool[i]:Hide()
     end
-    resetButton:SetShown(grouped and #entries > 0)
+    resetButton:SetShown(grouped and #entries > 0 and opt.reset ~= false)
+    local footer = (opt.reset ~= false) and FOOTER_H or FRAME_PADDING
 
     if #entries == 0 then
         frame:Hide()
@@ -836,6 +848,7 @@ local function RenderRows()
                 h.pill:SetColorTexture(tone.bg[1], tone.bg[2], tone.bg[3], 1)
                 h.pill:SetWidth(h.label:GetStringWidth() + 18)
                 h.sum:SetText(groupSums[e.group])
+                h.sum:SetShown(opt.sums ~= false)
                 -- Summe in derselben Spalte wie die Anzahlen der Items darunter (rechtsbündig)
                 h.sum:ClearAllPoints()
                 h.sum:SetPoint("RIGHT", h, "RIGHT", -(hideCount and 8 or countRight), 0)
@@ -863,8 +876,8 @@ local function RenderRows()
             local f, h = el[1], el[2]
             f:ClearAllPoints()
             if up then
-                f:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", inset, FOOTER_H + offset)
-                f:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, FOOTER_H + offset)
+                f:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", inset, footer + offset)
+                f:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, footer + offset)
             else
                 f:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -(topOffset + offset))
                 f:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -inset, -(topOffset + offset))
@@ -873,7 +886,7 @@ local function RenderRows()
             offset = offset + h
         end
         width = math.min(340, math.max(220, 8 + ICON_SIZE + 8 + maxNameW + (hideCount and 0 or (8 + countW)) + 8 + colW))
-        height = topOffset + offset + FOOTER_H
+        height = topOffset + offset + footer
     end
 
     -- Titel und Badge müssen ins Band passen
@@ -894,18 +907,50 @@ local function ResetSession()
 end
 
 resetButton = CreateFrame("Button", nil, frame)
-resetButton:SetHeight(22)
+resetButton:SetHeight(28)
 resetButton:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", FRAME_PADDING, 8)
 resetButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -FRAME_PADDING, 8)
 resetButton:RegisterForClicks("LeftButtonUp")
 resetButton.bg = resetButton:CreateTexture(nil, "BACKGROUND")
 resetButton.bg:SetAllPoints()
-resetButton.bg:SetColorTexture(0.184, 0.42, 0.235, 1)
+resetButton.bg:SetColorTexture(0.15, 0.12, 0.07, 1)   -- Farbe des Titelbands, wie im Einstellungsfenster (SexyEditMode)
 resetButton.hl = resetButton:CreateTexture(nil, "HIGHLIGHT")
 resetButton.hl:SetAllPoints()
-resetButton.hl:SetColorTexture(1, 1, 1, 0.25)
+resetButton.hl:SetColorTexture(1, 1, 1, 0.12)
 resetButton.text = resetButton:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 resetButton.text:SetAllPoints()
+resetButton.text:SetTextColor(0.91, 0.76, 0.42)
+-- Fußleiste hinter dem Knopf (dunkle Fläche mit Linie darüber) und Rand um den Knopf; Teile des Knopfs, damit sie mit ihm verschwinden
+do
+    local strip = resetButton:CreateTexture(nil, "BACKGROUND", nil, -2)
+    strip:SetColorTexture(0.114, 0.078, 0.05, 1)
+    strip:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 3, 3)
+    strip:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -3, 3)
+    strip:SetHeight(FOOTER_H - 3)
+    local line = resetButton:CreateTexture(nil, "BACKGROUND", nil, -1)
+    line:SetColorTexture(0.24, 0.185, 0.122, 1)
+    line:SetPoint("BOTTOMLEFT", strip, "TOPLEFT")
+    line:SetPoint("BOTTOMRIGHT", strip, "TOPRIGHT")
+    line:SetHeight(1)
+    -- dünner Rand, immer genau ein Bildschirmpixel stark (unabhängig von der Fenstergröße), damit Vorschau und Fenster gleich aussehen
+    local edges = {}
+    for i, e in ipairs({ { "TOPLEFT", "TOPRIGHT", true }, { "BOTTOMLEFT", "BOTTOMRIGHT", true },
+        { "TOPLEFT", "BOTTOMLEFT", false }, { "TOPRIGHT", "BOTTOMRIGHT", false } }) do
+        local t = resetButton:CreateTexture(nil, "BORDER")
+        t:SetColorTexture(0.6, 0.49, 0.22, 1)
+        t:SetPoint(e[1])
+        t:SetPoint(e[2])
+        edges[i] = { tex = t, horizontal = e[3] }
+    end
+    local function Pixel()
+        local px = 1 / math.max(0.2, resetButton:GetEffectiveScale())
+        for _, e in ipairs(edges) do
+            if e.horizontal then e.tex:SetHeight(px) else e.tex:SetWidth(px) end
+        end
+    end
+    Pixel()
+    resetButton:HookScript("OnShow", Pixel)
+end
 resetButton.text:SetText(L("resetButton"))
 resetButton:SetScript("OnClick", ResetSession)
 resetButton:Hide()
@@ -1051,25 +1096,77 @@ local function SetHidden(key, value)
     RenderRows()
 end
 
+-- Aussehen-Optionen setzen und speichern; Größen wirken über ICON_SIZE/SLOT_ICON/ROW_HEIGHT
+local function ApplyOptions()
+    ICON_SIZE = opt.iconSize or 22
+    SLOT_ICON = ICON_SIZE + 6
+    ROW_HEIGHT = math.max(opt.rowHeight or 30, ICON_SIZE + 8)
+    GROUP_ROW_H = math.max(28, ICON_SIZE + 6)
+    ApplyBackground()
+end
+
+local function SetOpt(key, value)
+    opt[key] = value
+    SexyHarvesterDB.style[key] = value
+    ApplyOptions()
+    RenderRows()
+end
+
+-- Zustand für die Vorschau im Einstellungsfenster (Samples.lua zeichnet ein eigenes Fenster damit)
+_G.SexyHarvesterAPI = {
+    Sample = function()
+        return {
+            L = L, TONES = TONES, GROUP_ORDER = GROUP_ORDER, GROUP_TONE = GROUP_TONE, GROUP_LABEL = GROUP_LABEL,
+            preview = PreviewEntries(),
+            layout = LIST_LAYOUTS[listLayoutIndex] or LIST_LAYOUTS[1],
+            growth = GROWTH_STYLES[growthDirectionIndex] or GROWTH_STYLES[1],
+            pos = COUNT_POSITIONS[countPositionIndex] or COUNT_POSITIONS[1],
+            iconBorder = EDGE_STYLES[iconBorderIndex] or EDGE_STYLES[1],
+            font = FONTS[fontIndex] or FONTS[1], fontSize = fontSize,
+            hideTitle = hideTitle, hideCount = hideCount, hideGained = hideGained,
+            iconSize = ICON_SIZE, slotIcon = SLOT_ICON, rowHeight = ROW_HEIGHT, groupRowH = GROUP_ROW_H, opacity = opt.opacity or 0.96,
+            cards = opt.cards ~= false, total = opt.total ~= false, sums = opt.sums ~= false, reset = opt.reset ~= false,
+        }
+    end,
+}
+
 local function BuildSettings()
     return {
-        { type = "header", name = L("sectionView"), id = "view" },
+        -- alle Einstellungen verändern die Vorschau: eine Gruppe, in Abschnitte geteilt
+        { type = "header", name = L("sectionLook"), id = "look" },
+        { type = "divider", name = L("sectionView") },
         { type = "select", name = L("listLayout"), options = StyleOptions(LIST_LAYOUTS),
             get = function() return listLayoutIndex end, set = SetListLayoutIndex },
         { type = "select", name = L("growthDirection"), options = StyleOptions(GROWTH_STYLES),
             get = function() return growthDirectionIndex end, set = SetGrowthDirectionIndex },
-        { type = "select", name = L("countPosition"), options = StyleOptions(COUNT_POSITIONS),
-            get = function() return countPositionIndex end, set = SetCountPositionIndex },
         { type = "check", name = L("hideTitle"), get = function() return hideTitle end,
             set = function(v) SetHidden("hideTitle", v) end },
+        { type = "check", name = L("showTotal"), get = function() return opt.total ~= false end,
+            set = function(v) SetOpt("total", v and true or false) end },
         { type = "check", name = L("hideCount"), get = function() return hideCount end,
             set = function(v) SetHidden("hideCount", v) end },
         { type = "check", name = L("hideGained"), get = function() return hideGained end,
             set = function(v) SetHidden("hideGained", v) end },
-
-        { type = "header", name = L("sectionLook"), id = "look", collapsed = true },
+        { type = "check", name = L("groupSums"), get = function() return opt.sums ~= false end,
+            set = function(v) SetOpt("sums", v and true or false) end },
+        { type = "check", name = L("showReset"), get = function() return opt.reset ~= false end,
+            set = function(v) SetOpt("reset", v and true or false) end },
+        { type = "divider", name = L("sectionSize") },
+        { type = "slider", name = L("iconSize"), min = 16, max = 40, step = 1,
+            get = function() return opt.iconSize or 22 end, set = function(v) SetOpt("iconSize", v) end },
+        { type = "slider", name = L("rowHeight"), min = 24, max = 48, step = 1,
+            get = function() return opt.rowHeight or 30 end, set = function(v) SetOpt("rowHeight", v) end },
+        { type = "slider", name = L("windowOpacity"), min = 30, max = 100, step = 2,
+            get = function() return math.floor((opt.opacity or 0.96) * 100 + 0.5) end,
+            set = function(v) SetOpt("opacity", v / 100) end,
+            format = function(v) return v .. " %" end },
+        { type = "check", name = L("rowCards"), get = function() return opt.cards ~= false end,
+            set = function(v) SetOpt("cards", v and true or false) end },
         { type = "select", name = L("iconBorder"), options = StyleOptions(EDGE_STYLES),
             get = function() return iconBorderIndex end, set = SetIconBorderIndex },
+        { type = "select", name = L("countPosition"), options = StyleOptions(COUNT_POSITIONS),
+            get = function() return countPositionIndex end, set = SetCountPositionIndex },
+        { type = "divider", name = L("sectionText") },
         { type = "select", name = L("font"), options = StyleOptions(FONTS, true),
             get = function() return fontIndex end, set = SetFontIndex },
         { type = "slider", name = L("fontSize"), min = 8, max = 24, step = 1,
@@ -1105,7 +1202,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             hideTitle = style.hideTitle and true or false
             hideCount = style.hideCount and true or false
             hideGained = style.hideGained and true or false
-            ApplyBackground()
+            for _, key in ipairs({ "iconSize", "rowHeight", "opacity", "cards", "total", "sums", "reset" }) do opt[key] = style[key] end
+            ApplyOptions()
             ApplyFrameBorder()
             ApplyFont()
             for _, row in ipairs(rowPool) do
@@ -1117,12 +1215,16 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- Fenster im Edit Mode verschiebbar machen; Position, Größe und Sichtbarkeit speichert
             -- die Bibliothek in SexyHarvesterDB.editMode. Im Edit Mode zeigt das Fenster Beispiele.
             if SEM.RegisterAddon then SEM:RegisterAddon("SexyHarvester", { title = "SexyHarvester" }) end
+            if SEM.RegisterProfile then
+                SEM:RegisterProfile("SexyHarvester", { db = function() return SexyHarvesterDB end, keys = { "style", "editMode", "minimap" } })
+            end
             SEM:Register(frame, {
                 name = "SexyHarvester: " .. L("title"),
                 addon = "SexyHarvester",
                 description = (GetLocale() == "deDE" and "Sammelberuf-Rohstoffe im Inventar mit Zähler für diese Sitzung." or "Gathering materials in your bags with a counter for this session."),
                 db = SexyHarvesterDB.editMode,
                 settings = BuildSettings(),
+                sample = SexyHarvesterSamples and SexyHarvesterSamples.harvester,   -- Vorschau im Einstellungsfenster: eigenes Fenster mit eigener Logik (Samples.lua)
                 onEditMode = function() RenderRows() end,
             })
         end

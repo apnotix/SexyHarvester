@@ -2,6 +2,9 @@
 
 ## 1.0.6
 
+- Reset-Knopf („Reset Session“): Fußleiste mit Linie, Bandfarbe, goldene Schrift, 28 px hoch und ein dünner goldener Rand, der immer genau ein Bildschirmpixel stark ist (gleicher Look in der Vorschau und im echten Fenster).
+
+- Einstellungsfenster: Die Vorschau ist ein eigenes Fenster mit eigener Logik (neue Datei Samples.lua, braucht einen vollständigen Neustart): Beispiel-Rohstoffe mit Session-Zähler, Mengen und Zähler zählen laufend hoch; Icon-Layout, Wachstumsrichtung, Anzahl-Position, Icon-Rahmen, Schrift und Ausblenden wirken sofort. Alle Einstellungen liegen in einer Gruppe „Aussehen“ (Abschnitte Anzeige, Größe und Fläche, Schrift). Neu: Icon-Größe, Zeilenhöhe, Deckkraft des Fensters, Zeilen als Karten, Summe im Titel, Summen der Gruppen und Reset-Knopf lassen sich einstellen; jede Fläche der Vorschau springt zu ihrer Einstellung.
 - SexyEditMode ist jetzt eine Pflichtabhängigkeit (CurseForge installiert es automatisch).
 - Andocken: Das Fenster lässt sich an ein anderes Fenster andocken (auch anderer Sexy-Addons), mit Seite und Ausrichtung (mit SexyEditMode).
 - Minimap-Knopf, Rechtsklick: Edit Mode nur für die Fenster von SexyHarvester (mit SexyEditMode).

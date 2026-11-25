@@ -1,22 +1,23 @@
 ## Interface: 120100, 16001
-## Title: |cff1eff00SexyHarvester|r
+## Title: |cffb48cffSexy|r|cffbc99ffH|cffc5a6ffa|cffcdb2ffr|cffd5bfffv|cffdeccffe|cffe6d9ffs|cffeee5fft|cfff7f2ffe|cffffffffr|r
 ## Notes: Zeigt Sammelberuf-Rohstoffe (Kräuter, Erz, Leder, Stoff) im Inventar samt Session-Zähler an.
 ## Notes-enUS: Shows gathering materials (herbs, ore, leather, cloth) in your bags with a session counter.
 ## Author: apnotix2007
 ## Version: 1.0.6
 ## X-Curse-Project-ID: 1799184
-## Category: Professions
 ## IconTexture: Interface\AddOns\SexyHarvester\icon.tga
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## Dependencies: SexyEditMode
+## Group: SexyEditMode
 ## SavedVariables: SexyHarvesterDB
 
 Libs\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
-Libs\SexyEditMode\SexyEditMode.lua
 
 SexyHarvester.lua
 Minimap.lua
+News.lua
+Samples.lua
