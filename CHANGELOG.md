@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7
+
+- The session counter survives /reload: the amounts gathered so far come back after a reload (same character, within ten minutes). A new login or a character switch starts a new session; "Reset session" still clears it.
+
 ## 1.0.6
 
 - Reset-Knopf („Reset Session“): Fußleiste mit Linie, Bandfarbe, goldene Schrift, 28 px hoch und ein dünner goldener Rand, der immer genau ein Bildschirmpixel stark ist (gleicher Look in der Vorschau und im echten Fenster).

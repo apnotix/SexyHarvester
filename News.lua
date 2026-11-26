@@ -5,6 +5,10 @@ if not (SEM and SEM.RegisterNews) then return end
 
 SEM:RegisterNews("SexyHarvester", {
 	color = { 0.43, 0.94, 0.54 },
+	{ v = "1.0.7",
+		{ "Sitzung", "Der Sitzungszähler übersteht /reload: die bisher gesammelten Mengen bleiben erhalten. Bei einem neuen Login oder Charakterwechsel beginnt eine neue Sitzung.",
+		  "Session", "The session counter survives /reload: the amounts gathered so far stay. A new login or a character switch starts a new session." },
+	},
 	{ v = "1.0.6",
 		{ "Reset-Knopf", "Der Knopf unten hat den Look der anderen Sexy-Fenster: Fußleiste, Bandfarbe, goldene Schrift und ein dünner goldener Rand, in der Vorschau wie im Fenster gleich.",
 		  "Reset button", "The button at the bottom has the look of the other Sexy windows: footer, band color, gold text and a thin gold border, the same in the preview and in the window." },

@@ -238,6 +238,7 @@ local currentCounts = {}   -- [itemID] = aktuelle Menge im Inventar
 local sessionGained = {}   -- [itemID] = in dieser Session dazugewonnene Menge
 local pendingItemIDs = {}  -- itemIDs, deren Info noch nicht gecacht war
 local initialized = false
+local sessionChecked = false   -- die gespeicherte Sitzung wird nur beim ersten Eintritt in die Welt geprüft
 
 -- Über den Edit Mode umschaltbare Anzeige-Optionen (siehe RegisterCustomCheckbox weiter unten)
 local hideTitle = false
@@ -1177,6 +1178,7 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("BAG_UPDATE")
 eventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 
@@ -1228,7 +1230,26 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 onEditMode = function() RenderRows() end,
             })
         end
+    elseif event == "PLAYER_LOGOUT" then
+        -- Die Sitzung übersteht /reload: PLAYER_LOGOUT kommt auch vor einem Reload. Gespeichert werden nur die gesammelten Mengen;
+        -- die Baseline ist der erste Scan nach dem Laden (die Taschen sind dieselben).
+        if next(sessionGained) then
+            SexyHarvesterDB.session = { guid = UnitGUID("player"), savedAt = time(), gained = sessionGained }
+        else
+            SexyHarvesterDB.session = nil
+        end
     elseif event == "PLAYER_ENTERING_WORLD" then
+        if not sessionChecked then
+            sessionChecked = true
+            local isReload = select(2, ...)
+            local d = SexyHarvesterDB.session
+            SexyHarvesterDB.session = nil
+            -- nur nach einem Reload, für denselben Charakter und nicht nach einer langen Pause
+            if isReload and type(d) == "table" and d.guid == UnitGUID("player") and type(d.savedAt) == "number"
+                and time() - d.savedAt <= 600 and type(d.gained) == "table" then
+                for itemID, n in pairs(d.gained) do sessionGained[itemID] = n end
+            end
+        end
         RequestScan()
     elseif event == "BAG_UPDATE" then
         RequestScan()
